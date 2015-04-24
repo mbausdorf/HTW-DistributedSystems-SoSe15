@@ -1,2 +1,3 @@
 # HTW-DistributedSystems-SoSe15
-Blah!
+
+Wir sind Gruppe 7. Krasse Sache, oder?
