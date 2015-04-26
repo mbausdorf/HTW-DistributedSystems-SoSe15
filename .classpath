@@ -2,6 +2,33 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.USER_LIBRARY/DS"/>
+	<classpathentry kind="lib" path="libs/base/java-util-1.0.0.jar"/>
+	<classpathentry kind="lib" path="libs/base/javaee-api-7.0.jar"/>
+	<classpathentry kind="lib" path="libs/base/mysql-connector-java-5.1.22-bin.jar"/>
+	<classpathentry kind="lib" path="libs/demos/distributed-systems-generated.jar"/>
+	<classpathentry kind="lib" path="libs/demos/distributed-systems-plugins.jar"/>
+	<classpathentry kind="lib" path="libs/jersey-2.4.1/asm-all-repackaged-2.2.0-b21.jar"/>
+	<classpathentry kind="lib" path="libs/jersey-2.4.1/cglib-2.2.0-b21.jar"/>
+	<classpathentry kind="lib" path="libs/jersey-2.4.1/guava-14.0.1.jar"/>
+	<classpathentry kind="lib" path="libs/jersey-2.4.1/hk2-api-2.2.0-b21.jar"/>
+	<classpathentry kind="lib" path="libs/jersey-2.4.1/hk2-locator-2.2.0-b21.jar"/>
+	<classpathentry kind="lib" path="libs/jersey-2.4.1/hk2-utils-2.2.0-b21.jar"/>
+	<classpathentry kind="lib" path="libs/jersey-2.4.1/javax.annotation-api-1.2.jar"/>
+	<classpathentry kind="lib" path="libs/jersey-2.4.1/javax.inject-2.2.0-b21.jar"/>
+	<classpathentry kind="lib" path="libs/jersey-2.4.1/javax.servlet-api-3.0.1.jar"/>
+	<classpathentry kind="lib" path="libs/jersey-2.4.1/javax.ws.rs-api-2.0.jar"/>
+	<classpathentry kind="lib" path="libs/jersey-2.4.1/jaxb-api-2.2.7.jar"/>
+	<classpathentry kind="lib" path="libs/jersey-2.4.1/jersey-client.jar"/>
+	<classpathentry kind="lib" path="libs/jersey-2.4.1/jersey-common.jar"/>
+	<classpathentry kind="lib" path="libs/jersey-2.4.1/jersey-container-jdk-http-2.4.1.jar"/>
+	<classpathentry kind="lib" path="libs/jersey-2.4.1/jersey-container-servlet-core.jar"/>
+	<classpathentry kind="lib" path="libs/jersey-2.4.1/jersey-container-servlet.jar"/>
+	<classpathentry kind="lib" path="libs/jersey-2.4.1/jersey-media-json-jettison-2.4.1.jar"/>
+	<classpathentry kind="lib" path="libs/jersey-2.4.1/jersey-server.jar"/>
+	<classpathentry kind="lib" path="libs/jersey-2.4.1/jettison-1.3.3.jar"/>
+	<classpathentry kind="lib" path="libs/jersey-2.4.1/org.osgi.core-4.2.0.jar"/>
+	<classpathentry kind="lib" path="libs/jersey-2.4.1/osgi-resource-locator-1.0.1.jar"/>
+	<classpathentry kind="lib" path="libs/jersey-2.4.1/persistence-api-1.0.jar"/>
+	<classpathentry kind="lib" path="libs/jersey-2.4.1/validation-api-1.1.0.Final.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
