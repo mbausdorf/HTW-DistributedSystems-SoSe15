@@ -1,6 +1,8 @@
 package de.htw.ds.sync;
 
 import java.util.Arrays;
+import java.util.concurrent.Semaphore;
+
 import de.sb.java.TypeMetadata;
 
 
@@ -14,7 +16,6 @@ import de.sb.java.TypeMetadata;
 public final class VectorMathMultiThreaded {
 	static private final int PROCESSOR_COUNT = Runtime.getRuntime().availableProcessors();
 
-
 	/**
 	 * Sums two vectors within a single thread.
 	 * @param leftOperand the first operand
@@ -23,11 +24,28 @@ public final class VectorMathMultiThreaded {
 	 * @throws NullPointerException if one of the given parameters is {@code null}
 	 * @throws IllegalArgumentException if the given parameters do not share the same length
 	 */
-	static public double[] add (final double[] leftOperand, final double[] rightOperand) {
+	static public double[] add (final double[] leftOperand, final double[] rightOperand){
+		Semaphore sem = new Semaphore(PROCESSOR_COUNT);
 		if (leftOperand.length != rightOperand.length) throw new IllegalArgumentException();
 		final double[] result = new double[leftOperand.length];
 		for (int index = 0; index < leftOperand.length; ++index) {
-			result[index] = leftOperand[index] + rightOperand[index];
+			try {
+				sem.acquire();
+			} catch (InterruptedException ex)
+			{
+				System.out.println(ex);
+			}
+			final int i = index;
+			Runnable r = () -> {
+				result[i] = leftOperand[i] + rightOperand[i];
+				sem.release();
+			};
+			new Thread(r).start();
+		}
+		try {
+			sem.acquire(PROCESSOR_COUNT);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 		return result;
 	}
@@ -40,12 +58,30 @@ public final class VectorMathMultiThreaded {
 	 * @return the resulting matrix
 	 * @throws NullPointerException if one of the given parameters is {@code null}
 	 */
-	static public double[][] mux (final double[] leftOperand, final double[] rightOperand) {
+	static public double[][] mux (final double[] leftOperand, final double[] rightOperand){
+		Semaphore sem = new Semaphore(PROCESSOR_COUNT);
 		final double[][] result = new double[leftOperand.length][rightOperand.length];
 		for (int leftIndex = 0; leftIndex < leftOperand.length; ++leftIndex) {
 			for (int rightIndex = 0; rightIndex < rightOperand.length; ++rightIndex) {
-				result[leftIndex][rightIndex] = leftOperand[leftIndex] * rightOperand[rightIndex];
+				try {
+					sem.acquire();
+				} catch (InterruptedException ex)
+				{
+					System.out.println(ex);
+				}
+				final int cLi = leftIndex;
+				final int cRi = rightIndex;
+				Runnable r = () -> {
+					result[cLi][cRi] = leftOperand[cLi] * rightOperand[cRi];
+					sem.release();
+				};
+				new Thread(r).start();
 			}
+		}
+		try {
+			sem.acquire(PROCESSOR_COUNT);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 		return result;
 	}
