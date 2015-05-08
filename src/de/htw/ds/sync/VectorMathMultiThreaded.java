@@ -30,11 +30,7 @@ public final class VectorMathMultiThreaded {
         if (leftOperand.length != rightOperand.length) throw new IllegalArgumentException();
         final double[] result = new double[leftOperand.length];
         for (int index = 0; index < leftOperand.length; ++index) {
-            try {
-                sem.acquire();
-            } catch (InterruptedException ex) {
-                System.out.println(ex);
-            }
+            sem.acquireUninterruptibly();
             final int i = index;
             Runnable r = () -> {
                 try {
@@ -46,11 +42,7 @@ public final class VectorMathMultiThreaded {
             };
             new Thread(r).start();
         }
-        try {
-            sem.acquire(PROCESSOR_COUNT);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        sem.acquireUninterruptibly(PROCESSOR_COUNT);
         return result;
     }
 
@@ -68,11 +60,7 @@ public final class VectorMathMultiThreaded {
         final double[][] result = new double[leftOperand.length][rightOperand.length];
         for (int leftIndex = 0; leftIndex < leftOperand.length; ++leftIndex) {
             for (int rightIndex = 0; rightIndex < rightOperand.length; ++rightIndex) {
-                try {
-                    sem.acquire();
-                } catch (InterruptedException ex) {
-                    System.out.println(ex);
-                }
+                sem.acquireUninterruptibly();
                 final int cLi = leftIndex;
                 final int cRi = rightIndex;
                 Runnable r = () -> {
@@ -86,11 +74,7 @@ public final class VectorMathMultiThreaded {
                 new Thread(r).start();
             }
         }
-        try {
-            sem.acquire(PROCESSOR_COUNT);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
+        sem.acquireUninterruptibly(PROCESSOR_COUNT);
         return result;
     }
 
