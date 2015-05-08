@@ -5,6 +5,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 
+import de.sb.java.Threads;
 import de.sb.java.TypeMetadata;
 
 
@@ -17,7 +18,7 @@ import de.sb.java.TypeMetadata;
 @TypeMetadata(copyright = "2008-2015 Sascha Baumeister, all rights reserved", version = "1.0.0", authors = "Sascha Baumeister")
 public final class VectorMathMultiThreaded {
     static private final int PROCESSOR_COUNT = Runtime.getRuntime().availableProcessors();
-    static private ExecutorService executor = Executors.newFixedThreadPool(PROCESSOR_COUNT);
+    static private ExecutorService executor = Executors.newFixedThreadPool(PROCESSOR_COUNT, Threads.newDaemonThreadFactory());
 
     /**
      * Sums two vectors within a single thread.
@@ -120,5 +121,6 @@ public final class VectorMathMultiThreaded {
             }
             System.out.println("]");
         }
+//        executor.shutdown(); // wenn benoetigt wenn Threadfactory benutzt wird
     }
 }

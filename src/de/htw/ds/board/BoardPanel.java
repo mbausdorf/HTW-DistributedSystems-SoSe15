@@ -25,7 +25,7 @@ import de.sb.java.TypeMetadata;
  * @param <T> the type of the board's pieces
  */
 @TypeMetadata(copyright = "2013-2015 Sascha Baumeister, all rights reserved", version = "0.1.0", authors = "Sascha Baumeister")
-public class BoardPanelSkeleton<T extends PieceType> extends JPanel {
+public class BoardPanel<T extends PieceType> extends JPanel {
 	static private final long serialVersionUID = 1L;
 
 	private final Map<T,Image> whitePieceImages;
@@ -44,7 +44,7 @@ public class BoardPanelSkeleton<T extends PieceType> extends JPanel {
 	 * @throws NullPointerException if any of the given arguments is {@code null}
 	 * @throws IllegalArgumentException if the given search depth is negative
 	 */
-	public BoardPanelSkeleton (final Board<T> board, final int searchDepth, final Map<T,Image> whitePieceImages, final Map<T,Image> blackPieceImages) {
+	public BoardPanel (final Board<T> board, final int searchDepth, final Map<T,Image> whitePieceImages, final Map<T,Image> blackPieceImages) {
 		if (board == null | whitePieceImages == null | blackPieceImages == null) throw new NullPointerException();
 		if (searchDepth <= 0) throw new IllegalArgumentException();
 
@@ -90,7 +90,7 @@ public class BoardPanelSkeleton<T extends PieceType> extends JPanel {
 	 * {@inheritDoc}
 	 */
 	public void setControlsEnabled (final boolean enabled) {
-		for (final Component component : BoardPanelSkeleton.this.getComponents()) {
+		for (final Component component : BoardPanel.this.getComponents()) {
 			component.setEnabled(enabled);
 		}
 	}
