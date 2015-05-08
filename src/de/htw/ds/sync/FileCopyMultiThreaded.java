@@ -40,18 +40,22 @@ public final class FileCopyMultiThreaded {
 		PipedInputStream pInputStream = new PipedInputStream(4 * 1024);
 		PipedOutputStream pOutputStream = new PipedOutputStream(pInputStream);
 
-		Thread firstThread = new Thread(new Transporter(Files.newInputStream(sourcePath), pOutputStream));
-		Thread secondThread = new Thread(new Transporter(pInputStream, Files.newOutputStream(sinkPath)));
+		try(OutputStream fos = Files.newOutputStream(sinkPath)) {
+			try (InputStream fis = Files.newInputStream(sourcePath)) {
+				Thread firstThread = new Thread(new Transporter(fis, pOutputStream));
+				Thread secondThread = new Thread(new Transporter(pInputStream, fos));
 
-		firstThread.start();
-		secondThread.start();
+				firstThread.start();
+				secondThread.start();
 
-		try {
-			System.out.println("Waiting for threads to finish.");
-			firstThread.join();
-			secondThread.join();
-		} catch (InterruptedException e) {
-			System.out.println("Main thread Interrupted");
+				try {
+					System.out.println("Waiting for threads to finish.");
+					firstThread.join();
+					secondThread.join();
+				} catch (InterruptedException e) {
+					System.out.println("Main thread Interrupted");
+				}
+			}
 		}
 
 		pInputStream.close();

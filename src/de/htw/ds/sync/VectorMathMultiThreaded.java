@@ -1,6 +1,8 @@
 package de.htw.ds.sync;
 
 import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 
 import de.sb.java.TypeMetadata;
@@ -15,6 +17,7 @@ import de.sb.java.TypeMetadata;
 @TypeMetadata(copyright = "2008-2015 Sascha Baumeister, all rights reserved", version = "1.0.0", authors = "Sascha Baumeister")
 public final class VectorMathMultiThreaded {
     static private final int PROCESSOR_COUNT = Runtime.getRuntime().availableProcessors();
+    static private ExecutorService executor = Executors.newFixedThreadPool(PROCESSOR_COUNT);
 
     /**
      * Sums two vectors within a single thread.
@@ -40,8 +43,9 @@ public final class VectorMathMultiThreaded {
                     sem.release();
                 }
             };
-            new Thread(r).start();
+            executor.execute(r);
         }
+
         sem.acquireUninterruptibly(PROCESSOR_COUNT);
         return result;
     }
@@ -59,20 +63,19 @@ public final class VectorMathMultiThreaded {
         Semaphore sem = new Semaphore(PROCESSOR_COUNT);
         final double[][] result = new double[leftOperand.length][rightOperand.length];
         for (int leftIndex = 0; leftIndex < leftOperand.length; ++leftIndex) {
-            for (int rightIndex = 0; rightIndex < rightOperand.length; ++rightIndex) {
-                sem.acquireUninterruptibly();
-                final int cLi = leftIndex;
-                final int cRi = rightIndex;
-                Runnable r = () -> {
-                    try {
+            final int cLi = leftIndex;
+            Runnable r = () -> {
+                try {
+                    for (int cRi = 0; cRi < rightOperand.length; ++cRi) {
                         result[cLi][cRi] = leftOperand[cLi] * rightOperand[cRi];
                     }
-                    finally {
-                        sem.release();
-                    }
-                };
-                new Thread(r).start();
-            }
+                }
+                finally {
+                    sem.release();
+                }
+            };
+            sem.acquireUninterruptibly();
+            executor.execute(r);
         }
         sem.acquireUninterruptibly(PROCESSOR_COUNT);
         return result;
