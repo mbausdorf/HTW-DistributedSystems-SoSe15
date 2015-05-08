@@ -37,8 +37,12 @@ public final class VectorMathMultiThreaded {
             }
             final int i = index;
             Runnable r = () -> {
-                result[i] = leftOperand[i] + rightOperand[i];
-                sem.release();
+                try {
+                    result[i] = leftOperand[i] + rightOperand[i];
+                }
+                finally {
+                    sem.release();
+                }
             };
             new Thread(r).start();
         }
@@ -72,8 +76,12 @@ public final class VectorMathMultiThreaded {
                 final int cLi = leftIndex;
                 final int cRi = rightIndex;
                 Runnable r = () -> {
-                    result[cLi][cRi] = leftOperand[cLi] * rightOperand[cRi];
-                    sem.release();
+                    try {
+                        result[cLi][cRi] = leftOperand[cLi] * rightOperand[cRi];
+                    }
+                    finally {
+                        sem.release();
+                    }
                 };
                 new Thread(r).start();
             }
