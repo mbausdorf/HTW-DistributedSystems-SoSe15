@@ -121,7 +121,6 @@ public final class VectorMathMultiThreaded {
             }
             System.out.println("]");
         }
-
         executor.shutdown();
     }
 }
