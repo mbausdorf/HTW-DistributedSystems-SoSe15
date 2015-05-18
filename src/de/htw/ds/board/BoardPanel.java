@@ -159,7 +159,7 @@ public class BoardPanel<T extends PieceType> extends JPanel {
 	 * Interrupts an asynchronous operation in progress.
 	 */
 	public void interruptAsynchronousOperation () {
-		// TODO: interrupt asynchronous operation 
+		asynchronousOperation.interrupt();
 	}
 
 	/**
