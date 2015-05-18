@@ -1,6 +1,8 @@
 /bin
 /.settings
 /out
-/.idea
 *.iml
+/.idea
+/*.log
 *.ipr
+*.iws
