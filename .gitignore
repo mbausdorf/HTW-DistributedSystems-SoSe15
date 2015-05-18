@@ -1,2 +1,6 @@
 /bin
 /.settings
+/out
+/.idea
+*.iml
+*.ipr
