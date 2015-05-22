@@ -254,9 +254,7 @@ public class BoardPanel<T extends PieceType> extends JPanel {
 	}
 
 	private void performComputerMoveAsync() {
-		asynchronousOperation =  new Thread(() -> {
-			performComputerMove();
-		});
+		asynchronousOperation =  new Thread(() -> this.performComputerMove());
 		asynchronousOperation.start();
 	}
 

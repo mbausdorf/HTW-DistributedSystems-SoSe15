@@ -3,6 +3,7 @@ package de.htw.ds.board.chess;
 import de.htw.ds.board.AbsoluteMotion;
 import de.htw.ds.board.Piece;
 import de.htw.ds.board.Prediction;
+import de.htw.ds.sync.ExampleWorkerException;
 import de.sb.java.Threads;
 import de.sb.java.TypeMetadata;
 
@@ -138,16 +139,23 @@ public final class ChessTableBoard2 extends ChessTableBoard {
 						}
 					}
 				} else {
+					
 					if (sinkPiece != null) {
-						if (sinkPiece.isWhite() == whiteActive | motion.isCaptureForbidden()) break;
-						if (sinkPiece.getType() != KING) {
-							if (captureKingMode) break;
-						} else {
-							if (!captureKingMode) moves.clear();
-							captureKingMode = true;
+						synchronized (moves) {
+							if (sinkPiece.isWhite() == whiteActive
+									| motion.isCaptureForbidden())
+								break;
+							if (sinkPiece.getType() != KING) {
+								if (captureKingMode)
+									break;
+							} else {
+								if (!captureKingMode)
+									moves.clear();
+								captureKingMode = true;
+							}
+							moves.add(new AbsoluteMotion[] { motion });
+							break;
 						}
-						moves.add(new AbsoluteMotion[] { motion });
-						break;
 					}
 
 					if ((activePiece.getType() == PAWN & this.passingPawn != null) && (this.passingPawn.getRank() == motion.getSinkRank() & this.passingPawn.getFile() == motion.getSinkFile())) {
@@ -180,37 +188,44 @@ public final class ChessTableBoard2 extends ChessTableBoard {
 		final List<Prediction> alternatives = new ArrayList<>();
 
 		final Collection<AbsoluteMotion[]> moves = this.getCandidateMoves();
-		List<Future<Prediction>> futures = Collections.synchronizedList(new ArrayList<>(moves.size()));
+		List<Future<Prediction>> futures = new ArrayList<>(moves.size());
 		for (final AbsoluteMotion[] move : moves) {
 			futures.add(executor.submit(() -> this.analyzeRecursively(move, depth)));
 		}
 
-		for (final Future<Prediction> predictionFuture : futures) {
-			try {
-				final Prediction prediction = predictionFuture.get();
-				if (alternatives.isEmpty()) {
-					alternatives.add(prediction);
-				} else {
-					final Comparator<Prediction> comparator = whitePerspective ? WHITE_PREDICTION_COMPARATOR : BLACK_PREDICTION_COMPARATOR;
-					final int compare = comparator.compare(prediction, alternatives.get(0));
-					if (compare > 0) alternatives.clear();
-					if (compare >= 0) alternatives.add(prediction);
-				}
-			}
-			catch (ExecutionException executionEx) {
-				try{
-					throw executionEx.getCause(); //is a Throwable!
-				} catch(NullPointerException e){
-					Logger.getGlobal().log(Level.WARNING, e.getMessage());
-				} catch(IllegalArgumentException e){
-					Logger.getGlobal().log(Level.WARNING, e.getMessage());
-				} catch (InterruptedException e) {
-				} catch (Throwable e) {
+		try {
+			for (final Future<Prediction> predictionFuture : futures) {
+				try {
+					final Prediction prediction = predictionFuture.get();
+					if (alternatives.isEmpty()) {
+						alternatives.add(prediction);
+					} else {
+						final Comparator<Prediction> comparator = whitePerspective ? WHITE_PREDICTION_COMPARATOR
+								: BLACK_PREDICTION_COMPARATOR;
+						final int compare = comparator.compare(prediction,
+								alternatives.get(0));
+						if (compare > 0)
+							alternatives.clear();
+						if (compare >= 0)
+							alternatives.add(prediction);
+					}
+				} catch (final ExecutionException exception) {
+					final Throwable cause = exception.getCause();
+					if (cause instanceof Error)
+						throw (Error) cause;
+					if (cause instanceof RuntimeException)
+						throw (RuntimeException) cause;
+					if (cause instanceof InterruptedException)
+						throw (InterruptedException) cause;
 					throw new AssertionError();
 				}
 			}
+		} catch (InterruptedException exception) {
+			for (final Future<Prediction> predictionFuture : futures) {
+				predictionFuture.cancel(true);
+			}
+			throw exception;
 		}
-
 		// randomly select one of the equally rated prediction alternatives
 		final Prediction prediction = alternatives.isEmpty()
 				? null
@@ -226,9 +241,16 @@ public final class ChessTableBoard2 extends ChessTableBoard {
 
 	@Override
 	public Prediction analyze(int depth) throws InterruptedException {
-		if (depth > 4)
+		if (depth >= PROCESSOR_COUNT)
 			return analyzeRecursivelyMT(depth);
 		else
 			return analyzeRecursively(depth);
+	}
+	
+	@Override
+	protected Prediction analyzeRecursively(AbsoluteMotion[] move, int depth) throws InterruptedException {
+		if (Thread.interrupted())  // Clears interrupted status!
+			throw new InterruptedException();
+		return super.analyzeRecursively(move, depth);
 	}
 }

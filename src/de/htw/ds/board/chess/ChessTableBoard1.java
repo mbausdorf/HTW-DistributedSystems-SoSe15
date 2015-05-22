@@ -50,7 +50,8 @@ public final class ChessTableBoard1 extends ChessTableBoard {
 
 	@Override
 	protected Prediction analyzeRecursively(AbsoluteMotion[] move, int depth) throws InterruptedException {
-		Thread.interrupted();
+		 if (Thread.interrupted())  // Clears interrupted status!
+		      throw new InterruptedException();
 		return super.analyzeRecursively(move, depth);
 	}
 }
