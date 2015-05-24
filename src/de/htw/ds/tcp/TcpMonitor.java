@@ -26,7 +26,7 @@ import de.sb.java.net.SocketAddress;
  * provides an application entry point, and therefore not supposed to be extended.
  */
 @TypeMetadata(copyright = "2008-2015 Sascha Baumeister, all rights reserved", version = "0.3.0", authors = "Sascha Baumeister")
-public final class TcpMonitorSkeleton implements Runnable, AutoCloseable {
+public final class TcpMonitor implements Runnable, AutoCloseable {
 
 	/**
 	 * Instances of this static inner class handle TCP client connections accepted by a TCP monitor.
@@ -140,7 +140,7 @@ public final class TcpMonitorSkeleton implements Runnable, AutoCloseable {
 			}
 		};
 
-		try (TcpMonitorSkeleton server = new TcpMonitorSkeleton(servicePort, forwardAddress, watcher)) {
+		try (TcpMonitor server = new TcpMonitor(servicePort, forwardAddress, watcher)) {
 			// print welcome message
 			System.out.println("TCP monitor running on one acceptor thread, enter \"quit\" to stop.");
 			System.out.format("Service port is %s.\n", server.getServicePort());
@@ -172,7 +172,7 @@ public final class TcpMonitorSkeleton implements Runnable, AutoCloseable {
 	 * @throws IllegalArgumentException if the given service port is outside range [0, 0xFFFF]
 	 * @throws IOException if the given port is already in use, or cannot be bound
 	 */
-	public TcpMonitorSkeleton (final int servicePort, final InetSocketAddress forwardAddress, final TcpMonitorWatcher watcher) throws IOException {
+	public TcpMonitor (final int servicePort, final InetSocketAddress forwardAddress, final TcpMonitorWatcher watcher) throws IOException {
 		if (forwardAddress == null | watcher == null) throw new NullPointerException();
 
 		this.executorService = Executors.newCachedThreadPool();
