@@ -1,9 +1,6 @@
 package de.htw.ds.tcp;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -13,10 +10,13 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Semaphore;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 import de.sb.java.TypeMetadata;
+import de.sb.java.io.MultiOutputStream;
+import de.sb.java.io.Streams;
 import de.sb.java.net.SocketAddress;
 
 
@@ -34,6 +34,7 @@ public final class TcpMonitor implements Runnable, AutoCloseable {
 	// TODO: Remove
 	@SuppressWarnings("unused")
 	static private class ConnectionHandler implements Runnable {
+		private static final int BUFFER_SIZE = 1024;
 		private final Socket clientConnection;
 		private final ExecutorService executorService;
 		private final InetSocketAddress forwardAddress;
@@ -65,6 +66,47 @@ public final class TcpMonitor implements Runnable, AutoCloseable {
 		 */
 		public void run () {
 			try (Socket serverConnection = new Socket(this.forwardAddress.getHostName(), this.forwardAddress.getPort())) {
+				Semaphore sem = new Semaphore(-1);
+
+				ByteArrayOutputStream upstreamLogBuffer = new ByteArrayOutputStream();
+				ByteArrayOutputStream downstreamLogBuffer = new ByteArrayOutputStream();
+				try {
+					long connectionOpenTime = System.currentTimeMillis();
+					try (MultiOutputStream monitoredUpstream =
+								 new MultiOutputStream(serverConnection.getOutputStream(), upstreamLogBuffer)) {
+						executorService.submit(() -> {
+							try {
+								Streams.copy(clientConnection.getInputStream(), monitoredUpstream, BUFFER_SIZE);
+							} catch (IOException e) {
+								this.watcher.exceptionCatched(e);
+							} finally {
+								sem.release();
+							}
+						});
+
+						try (MultiOutputStream monitoredDownstream =
+									 new MultiOutputStream(clientConnection.getOutputStream(), downstreamLogBuffer)) {
+							executorService.submit(() -> {
+								try {
+									Streams.copy(serverConnection.getInputStream(), monitoredDownstream, BUFFER_SIZE);
+								} catch (IOException e) {
+									this.watcher.exceptionCatched(e);
+								} finally {
+									sem.release();
+								}
+							});
+
+							sem.acquireUninterruptibly();
+							long connectionCloseTime = System.currentTimeMillis();
+							this.watcher.recordCreated(new TcpMonitorRecord(connectionOpenTime,connectionCloseTime,upstreamLogBuffer.toByteArray(),downstreamLogBuffer.toByteArray()));
+						}
+					}
+				}
+				finally {
+					upstreamLogBuffer.close();
+					downstreamLogBuffer.close();
+				}
+
 				// TODO: Transport all content from the client connection's input stream into
 				// both the server connection's output stream and a byte output stream. In
 				// parallel, transport all content from the server connection's input stream
@@ -101,7 +143,8 @@ public final class TcpMonitor implements Runnable, AutoCloseable {
 			} finally {
 				try {
 					this.clientConnection.close();
-				} catch (final Exception exception) {}
+				} catch (final Exception exception) {
+				}
 			}
 		}
 	}

@@ -191,7 +191,7 @@ public class TcpMonitorPane extends JPanel implements TcpMonitorWatcher {
 		this.stopButton = new JButton();
 		this.recordTableModel = new BeanTableModel<>(TcpMonitorRecord.class);
 		this.servicePortField = new JTextField("8010");
-		this.forwardHostField = new JTextField("localhost");
+		this.forwardHostField = new JTextField("www.sueddeutsche.de");
 		this.forwardPortField = new JTextField("80");
 		this.requestArea = new JTextArea();
 		this.responseArea = new JTextArea();
