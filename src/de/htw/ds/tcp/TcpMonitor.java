@@ -68,9 +68,8 @@ public final class TcpMonitor implements Runnable, AutoCloseable {
 			try (Socket serverConnection = new Socket(this.forwardAddress.getHostName(), this.forwardAddress.getPort())) {
 				Semaphore sem = new Semaphore(-1);
 
-				ByteArrayOutputStream upstreamLogBuffer = new ByteArrayOutputStream();
-				ByteArrayOutputStream downstreamLogBuffer = new ByteArrayOutputStream();
-				try {
+				try (ByteArrayOutputStream upstreamLogBuffer = new ByteArrayOutputStream();
+					 ByteArrayOutputStream downstreamLogBuffer = new ByteArrayOutputStream()) {
 					long connectionOpenTime = System.currentTimeMillis();
 					try (MultiOutputStream monitoredUpstream =
 								 new MultiOutputStream(serverConnection.getOutputStream(), upstreamLogBuffer)) {
@@ -101,10 +100,6 @@ public final class TcpMonitor implements Runnable, AutoCloseable {
 							this.watcher.recordCreated(new TcpMonitorRecord(connectionOpenTime,connectionCloseTime,upstreamLogBuffer.toByteArray(),downstreamLogBuffer.toByteArray()));
 						}
 					}
-				}
-				finally {
-					upstreamLogBuffer.close();
-					downstreamLogBuffer.close();
 				}
 
 				// TODO: Transport all content from the client connection's input stream into
