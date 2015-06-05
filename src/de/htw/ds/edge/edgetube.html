@@ -1,0 +1,35 @@
+<!doctype html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="author" content="Sascha Baumeister" />
+		<meta name="dcterms.rightsHolder" content="Sascha Baumeister" />
+		<meta name="dcterms.rights" content="all rights reserved" />
+		<meta name="dcterms.dateCopyrighted" content="2008-2015" />
+		<link href="edgetube.ico" rel="icon" type="image/x-icon" />
+
+		<title>EdgeTube</title>
+		<script>
+			function playVideo() {
+				var timezoneOffset = new Date().getTimezoneOffset() / -60.0;
+				var uri = document.querySelector("select").value;
+				document.querySelector("video").src = uri + "?timezoneOffset=" + timezoneOffset;
+			}
+		</script>
+	</head>
+	<body>
+		<div>
+			<select style="font-size: 28px;" onchange="playVideo()">
+				<option value="" selected="selected"></option>
+				<option value="/redirect/de/htw/ds/edge/erb4-oprah-vs-ellen.mp4">Oprah vs Ellen</option>
+				<option value="/redirect/de/htw/ds/edge/erb3-george-washington-vs-william-wallace.mp4">George Washington vs William Wallace</option>
+				<option value="/redirect/de/htw/ds/edge/erb2-moses-vs-santa-claus.mp4">Moses vs Santa Claus</option>
+				<option value="/redirect/de/htw/ds/edge/erb1-genghis-khan-vs-easter-bunny.mp4">Ghengis Khan vs Easter Bunny</option>
+			</select>
+			<p>Video &copy;2010-2015: Peter „Nice Peter“ Shukoff and Lloyd „EpicLLOYD“ Ahlquist, used as demo material under University fair use policy.</p>
+		</div>
+		<div>
+			<video controls="controls" autoplay="autoplay"></video>
+		</div>
+	</body>
+</html>

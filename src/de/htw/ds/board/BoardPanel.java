@@ -170,10 +170,8 @@ public class BoardPanel<T extends PieceType> extends JPanel {
 	private void handleFieldSelection (final byte rank, final byte file) {
 		final AbsoluteMotion[] move = this.selectMove(rank, file);
 		if (move != null && !this.performMove(move)) {
-			// TODO: perform this in a new thread, and store thread in field
-			// "asynchronousOperation". Optionally reset this field to null
-			// once the operation finishes.
 			this.performComputerMoveAsync();
+			asynchronousOperation = null;
 		}
 	}
 
