@@ -11,7 +11,7 @@ import com.sun.net.httpserver.HttpHandler;
  * edge server, based on timezone information provided as a query parameter.
  */
 @SuppressWarnings("unused") // TODO: remove this line
-public class HttpRedirectHandlerSkeleton implements HttpHandler {
+public class HttpRedirectHandler implements HttpHandler {
 	static private final short HTTP_REDIRECT = 307;
 	static private final short HTTP_BAD_REQUEST = 400;
 	static private final short HTTP_METHOD_NOT_ALLOWED = 405;
@@ -19,7 +19,7 @@ public class HttpRedirectHandlerSkeleton implements HttpHandler {
 	private final String contextPath;
 
 
-	public HttpRedirectHandlerSkeleton (String contextPath) {
+	public HttpRedirectHandler(String contextPath) {
 		if (contextPath == null) throw new NullPointerException();
 
 		if (!contextPath.startsWith("/")) contextPath = "/" + contextPath;
