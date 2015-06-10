@@ -34,8 +34,6 @@ import de.sb.java.net.SocketAddress;
  * supposed to be extended.
  */
 @TypeMetadata(copyright = "2008-2015 Sascha Baumeister, all rights reserved", version = "0.3.0", authors = "Sascha Baumeister")
-//TODO: remove this line to see warnings!
-@SuppressWarnings("unused")
 public final class TcpSwitchSkeleton implements Runnable, AutoCloseable {
 	static private final int MAX_PACKET_SIZE = 0xFFFF;
 
