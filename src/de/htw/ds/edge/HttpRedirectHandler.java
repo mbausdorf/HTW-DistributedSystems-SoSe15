@@ -1,6 +1,9 @@
 package de.htw.ds.edge;
 
 import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.SocketAddress;
 import java.net.URI;
 import java.util.Map;
 import com.sun.net.httpserver.HttpExchange;
@@ -10,7 +13,6 @@ import com.sun.net.httpserver.HttpHandler;
  * Instances of this HTTP handler class redirect any request to an appropriate
  * edge server, based on timezone information provided as a query parameter.
  */
-@SuppressWarnings("unused") // TODO: remove this line
 public class HttpRedirectHandler implements HttpHandler {
 	static private final short HTTP_REDIRECT = 307;
 	static private final short HTTP_BAD_REQUEST = 400;
@@ -61,9 +63,21 @@ public class HttpRedirectHandler implements HttpHandler {
 				return;
 			}
 
-			// TODO: parse parameter "timezoneOffset" as a float value, determine edge-server address using
-			// Services#nodeAddress(), create matching redirect URI (without context path!), add response
-			// header "Location" with this URI as value, and send response headers with code 307/0.
+			if(requestParameters.containsKey("timezoneOffset")){
+				// get timezone offset
+				float timezoneOffset = Float.parseFloat(requestParameters.get("timezoneOffset"));
+				// construct redirect URL
+				InetSocketAddress redirectAddress = HttpRedirectHandlers.nodeAddress(timezoneOffset);
+				String redirectUrl = "http://" + redirectAddress.getHostName() + ":" + redirectAddress.getPort() + requestPath.replace("redirect/","");
+				// send response header
+				exchange.getResponseHeaders().add("Location",redirectUrl);
+				exchange.sendResponseHeaders(HTTP_REDIRECT,-1);
+			}
+			else{
+				//time offset not available
+				exchange.sendResponseHeaders(HTTP_BAD_REQUEST,-1);
+			}
+
 		} finally {
 			exchange.close();
 		}
