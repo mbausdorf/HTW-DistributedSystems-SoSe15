@@ -1,0 +1,121 @@
+<!doctype html>
+<!-- author Sascha Baumeister (C) Sascha Baumeister 2008-2015 -->
+
+<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+		<title>AJAX Chat (JSON based REST calls)</title>
+		<script>
+			"use strict";
+
+			/**
+			* Defines a global singleton that is tasked with connecting script actions
+			* to the DOM and vice versa.
+			*/
+			var CHAT_CONTROLLER = new function () {
+
+				/**
+				* Creates a new server side chat entry using the current values of the HTML
+				* "alias" and "content" input fields by issuing an asynchronous REST web-service
+				* call (PUT /services/chatEntries). Afterwards, the content of the HTML table
+				* "chatEntries" is refreshed using another asynchronous REST web-service call
+				* (GET /services/chatEntries).
+				*/
+				this.addChatEntry = function () {
+					var inputElements = document.querySelectorAll("input");
+					var chatEntry = { alias: inputElements[0].value, content: inputElements[1].value, timestamp: new Date().getTime() };
+					var requestBody = JSON.stringify(chatEntry);
+
+					var httpRequest = new XMLHttpRequest();
+					httpRequest.onreadystatechange = function() {
+						if (this.readyState != 4) return;
+						if (this.status != 204) return;
+
+						CHAT_CONTROLLER.refreshChatEntries();
+					}
+
+					httpRequest.overrideMimeType("text/plain");
+					httpRequest.open("PUT", "/services/chatEntries", true);
+					httpRequest.setRequestHeader("Content-type", "application/json");
+					httpRequest.send(requestBody);
+				};
+
+
+				/**
+				* Updates the content of the HTML "chatEntries" table by issuing an asynchronous
+				* REST web-service call (GET /services/chatEntries).
+				*/
+				this.refreshChatEntries = function () {
+					var httpRequest = new XMLHttpRequest();
+					httpRequest.onreadystatechange = function() {
+						if (this.readyState != 4) return;
+						if (this.status != 200) return;
+						var chatEntries = JSON.parse(this.responseText)
+
+						var tableElement = document.querySelector("table");
+						while (tableElement.lastChild) tableElement.removeChild(tableElement.lastChild);
+
+						var rowTemplate = document.querySelector("#chat-entries-row-template");
+						chatEntries.forEach(function (chatEntry) {
+							var rowElement = rowTemplate.content.cloneNode(true).firstElementChild;
+							tableElement.appendChild(rowElement);
+
+							var cellElements = rowElement.querySelectorAll("output")
+							cellElements[0].value = new Date(parseInt(chatEntry.timestamp)).toLocaleTimeString();
+							cellElements[1].value = chatEntry.alias;
+							cellElements[2].value = chatEntry.content;
+						});	
+					}
+
+					httpRequest.open("GET", "/services/chatEntries", true);
+					httpRequest.setRequestHeader("Accept", "application/json");
+					httpRequest.send(null);
+				};
+
+
+				/**
+				* Registers this controller's methods as callback methods for the HTML buttons.
+				* Note that this cannot be performed during controller creation as the HTML
+				* elements do not exist yet. Also note that the methods have to be bound in
+				* order to feature the controller instead of an HTML button as method receiver
+				* (this) during callback execution!
+				*/
+				this.initialize = function () {
+					var buttonElements = document.querySelectorAll("button");
+					buttonElements[0].onclick = this.addChatEntry.bind(this);
+					buttonElements[1].onclick = this.refreshChatEntries.bind(this);
+				};
+			}
+
+
+			/*
+			* After loading the page, initialize HTML element callbacks and display current
+			* chat entries. Note that the former cannot be performed during controller creation
+			* as the HTML elements do not exist yet.
+			*/
+			window.onload = function () {
+				CHAT_CONTROLLER.initialize();
+				CHAT_CONTROLLER.refreshChatEntries();
+			}
+		</script>
+
+		<template id="chat-entries-row-template">
+			<tr>
+				<td style="color:blue"><output></output></td>
+				<td style="color:green"><output></output></td>
+				<td><output></output></td>
+			</tr>
+		</template>
+	</head>
+
+	<body>
+		<div>
+			<input type="text" />
+			<input type="text" />
+			<button type="button">send</button>
+			<button type="button">refresh</button>
+		</div>
+		<h3>Chat content:</h3>
+		<table></table>
+	</body>
+</html>
