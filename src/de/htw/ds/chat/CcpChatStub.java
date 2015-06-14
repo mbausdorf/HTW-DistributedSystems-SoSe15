@@ -44,7 +44,7 @@ public class CcpChatStub {
 	 * @throws NullPointerException if the given serviceAddress is {@code null}
 	 */
 	public CcpChatStub (final InetSocketAddress serviceAddress) {
-		if (serviceAddress == null) throw new NullPointerException();
+		if (serviceAddress == null) throw new java.lang.NullPointerException();
 		this.serviceAddress = serviceAddress;
 	}
 

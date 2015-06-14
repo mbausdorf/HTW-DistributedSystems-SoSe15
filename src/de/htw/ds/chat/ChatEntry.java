@@ -51,7 +51,7 @@ public class ChatEntry implements Serializable {
 	 * @throws NullPointerException if the given alias or content is {@code null}
 	 */
 	public ChatEntry (final String alias, final String content, final long timestamp) {
-		if (alias == null || content == null) throw new NullPointerException();
+		if (alias == null || content == null) throw new java.lang.NullPointerException();
 
 		this.alias = alias;
 		this.content = content;

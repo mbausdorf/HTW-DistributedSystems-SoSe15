@@ -60,7 +60,7 @@ public final class SoapChatClient {
 	 * @throws NullPointerException if the given proxy is {@code null}
 	 */
 	public SoapChatClient (final SoapChatService serviceProxy) {
-		if (serviceProxy == null) throw new NullPointerException();
+		if (serviceProxy == null) throw new java.lang.NullPointerException();
 
 		this.serviceProxy = serviceProxy;
 

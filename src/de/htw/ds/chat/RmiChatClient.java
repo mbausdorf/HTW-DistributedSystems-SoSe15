@@ -62,7 +62,7 @@ public final class RmiChatClient {
 	 * @throws NullPointerException if the given registry or name is {@code null}
 	 */
 	public RmiChatClient (final Registry serviceRegistry, final String serviceName) {
-		if (serviceRegistry == null | serviceName == null) throw new NullPointerException();
+		if (serviceRegistry == null | serviceName == null) throw new java.lang.NullPointerException();
 
 		this.serviceRegistry = serviceRegistry;
 		this.serviceName = serviceName;

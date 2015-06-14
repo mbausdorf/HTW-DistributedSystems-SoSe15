@@ -64,7 +64,7 @@ public final class RmiChatServer implements RmiChatService, AutoCloseable {
 	 * @throws RemoteException if export fails
 	 */
 	public RmiChatServer (final int servicePort, final String serviceName, final ChatService delegate) throws RemoteException {
-		if (delegate == null) throw new NullPointerException();
+		if (delegate == null) throw new java.lang.NullPointerException();
 		if (servicePort <= 0 | servicePort > 0xFFFF) throw new IllegalArgumentException();
 
 		try {

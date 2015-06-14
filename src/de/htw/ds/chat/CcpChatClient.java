@@ -57,7 +57,7 @@ public final class CcpChatClient {
 	 */
 	public CcpChatClient (final CcpChatStub serviceStub) {
 
-		if (serviceStub == null) throw new NullPointerException();
+		if (serviceStub == null) throw new java.lang.NullPointerException();
 
 		this.serviceStub = serviceStub;
 

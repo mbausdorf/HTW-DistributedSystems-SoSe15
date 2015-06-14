@@ -80,7 +80,7 @@ public final class CcpChatServer implements Runnable, AutoCloseable {
 	 * @throws IOException if the given port is already in use, or cannot be bound
 	 */
 	public CcpChatServer (final int servicePort, final ChatService delegate) throws IOException {
-		if (delegate == null) throw new NullPointerException();
+		if (delegate == null) throw new java.lang.NullPointerException();
 		if (servicePort <= 0 | servicePort > 0xFFFF) throw new IllegalArgumentException();
 
 		try {

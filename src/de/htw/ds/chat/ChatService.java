@@ -35,7 +35,7 @@ public class ChatService {
 	 * @throws NullPointerException if the given argument is {@code null}
 	 */
 	public void addEntry (final ChatEntry entry) {
-		if (entry == null) throw new NullPointerException();
+		if (entry == null) throw new java.lang.NullPointerException();
 
 		synchronized (this.chatEntries) {
 			if (this.chatEntries.size() == this.maxSize) {
