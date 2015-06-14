@@ -12,6 +12,7 @@ import java.nio.file.*;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 
 
 /**
@@ -164,6 +165,28 @@ public final class FtpClient implements AutoCloseable {
     //==================================================================================================================
 
     /**
+     * Since there was a lot of code duplication, this method will handle the CWD and the PASV requests, to return the
+     * data connection socket. This is so that we save a few lines.
+     *
+     * @param filePath path on the remote server
+     * @return data connection socket
+     * @throws IOException
+     */
+    private synchronized Socket obtainDataConnection(Path filePath) throws IOException {
+        // set cwd to parent of the file
+        String cwd = filePath.toString().replace('\\', '/');
+        FtpResponse response = this.sendRequest("CWD " + cwd);
+
+        // if successful, obtain host and port for data connection socket
+        if (response.getCode() != 250) throw new ProtocolException();
+        response = this.sendRequest("PASV");
+
+        if (response.getCode() != 227) throw new ProtocolException();
+        return new Socket(response.getSocketAddress().getHostString(), response.getSocketAddress().getPort());
+
+    }
+
+    /**
      * Stores the given file on the FTP client side using a separate data connection. Note that the
      * source file resides on the server side and must therefore be a relative path (relative to the
      * FTP server context directory), while the target directory resides on the client side and can
@@ -183,50 +206,16 @@ public final class FtpClient implements AutoCloseable {
         if (this.isClosed()) throw new IllegalStateException();
         if (!Files.isDirectory(sinkDirectory)) throw new NotDirectoryException(sinkDirectory.toString());
 
-        try {
-            // get data connection socket
-            try (Socket newSocket = obtainDataConnection(sourceFile.getParent())) {
-                // download file
-                downloadAction(sourceFile, sinkDirectory, newSocket);
-                this.receiveResponse();
-            }
-        } catch (final Exception exception) {
-            try {
-                this.close();
-            } catch (final Exception nestedException) {
-                exception.addSuppressed(nestedException);
-            }
-            throw exception;
-        }
-        finally {
-            this.close();
-        }
-    }
+        try (Socket newSocket = obtainDataConnection(sourceFile.getParent())) {
+            FtpResponse response = this.sendRequest("RETR " + sourceFile.getFileName());
+            if (response.getCode() != 150) throw new ProtocolException();
 
-    /**
-     * downloads a file from the remote server to the local system
-     *
-     * @param sourceFile path to file on the remote server
-     * @param sinkDirectory path to target folder on local system
-     * @param newSocket data connection socket
-     * @throws IOException
-     */
-    private synchronized void downloadAction(Path sourceFile, Path sinkDirectory, Socket newSocket) throws IOException {
-        // send RETR request
-        FtpResponse response = this.sendRequest("RETR " + sourceFile.getFileName());
-        if (response.getCode() == 150) {
-            // if successful, copy stream content
-            try (OutputStream outputFile = Files.newOutputStream(Paths.get(sinkDirectory.toString(), sourceFile.getFileName().toString()))) {
-                byte[] buffer = new byte[1024];
-                int len;
-                while ((len = newSocket.getInputStream().read(buffer)) != -1) {
-                    outputFile.write(buffer, 0, len);
-                }
+            try (OutputStream outputStream = Files.newOutputStream(Paths.get(sinkDirectory.toString(), sourceFile.getFileName().toString()))) {
+                bufferHandling(outputStream, newSocket.getInputStream());
             }
         }
-        else{
-            throw new NoSuchFileException(sourceFile.toString());
-        }
+
+        if (this.receiveResponse().getCode() != 226) throw new ProtocolException();
     }
 
     /**
@@ -244,86 +233,36 @@ public final class FtpClient implements AutoCloseable {
      *                               be written
      * @throws IOException           if there is an I/O related problem
      */
+
     public synchronized void sendFile(final Path sourceFile, final Path sinkDirectory) throws IOException {
         if (this.isClosed()) throw new IllegalStateException();
         if (!Files.isReadable(sourceFile)) throw new NoSuchFileException(sourceFile.toString());
 
-        try {
-            // get data connection socket
-            try (Socket newSocket = obtainDataConnection(sinkDirectory)) {
-                // upload file
-                uploadAction(sourceFile, newSocket);
+        try (Socket newSocket = obtainDataConnection(sinkDirectory)) {
+            FtpResponse response = this.sendRequest("STOR " + sourceFile.getFileName());
+            if (response.getCode() != 150) throw new ProtocolException();
+
+            try (InputStream inputStream = Files.newInputStream(sourceFile)) {
+                bufferHandling(newSocket.getOutputStream(), inputStream);
             }
-            this.receiveResponse();
-        } catch (final Exception exception) {
-            try {
-                this.close();
-            } catch (final Exception nestedException) {
-                exception.addSuppressed(nestedException);
-            }
-            throw exception;
         }
-        finally {
-            this.close();
-        }
+
+        if (this.receiveResponse().getCode() != 226) throw new ProtocolException();
     }
 
     /***
-     * uploads a file to the remote server by transferring the stream contents
+     * Does the whole buffer writing and reading shabang
      *
-     * @param sourceFile local path to the uploaded file
-     * @param newSocket data connection socket
+     * @param outputStream
+     * @param inputStream
      * @throws IOException
      */
-    private synchronized void uploadAction(Path sourceFile, Socket newSocket) throws IOException {
-        FtpResponse response;
-        // send STOR request
-        response = this.sendRequest("STOR " + sourceFile.getFileName());
-        if (response.getCode() == 150) {
-            // if successful, upload file
-            try (InputStream inputFile = Files.newInputStream(sourceFile)) {
-                byte[] buffer = new byte[1024];
-                int len;
-                while ((len = inputFile.read(buffer)) != -1) {
-                    newSocket.getOutputStream().write(buffer, 0, len);
-                }
-            }
+    private void bufferHandling(OutputStream outputStream, InputStream inputStream) throws IOException {
+        byte[] buffer = new byte[1024];
+        int len;
+        while ((len = inputStream.read(buffer)) != -1) {
+            outputStream.write(buffer, 0, len);
         }
-        else{
-            throw new NoSuchFileException(sourceFile.toString());
-        }
-    }
-
-    /**
-     * Since there was a lot of code duplication, this method will handle the CWD and the PASV requests, to return the
-     * data connection socket. This is so that we save a few lines.
-     *
-     * @param filePath path on the remote server
-     * @return data connection socket
-     * @throws IOException
-     */
-    private synchronized Socket obtainDataConnection(Path filePath) throws IOException {
-        // kinda sorta global response for the end
-        FtpResponse response;
-
-        // does the file exist?
-        if (filePath.getParent() != null) {
-            // set cwd to parent of the file
-            String cwd = filePath.toString().replace('\\', '/');
-            response = this.sendRequest("CWD " + cwd);
-
-            // if successful, obtain host and port for data connection socket
-            if (response.getCode() == 250) {
-                response = this.sendRequest("PASV");
-            }
-
-            if (response.getCode() == 227) {
-                // open and return transfer socket
-                return new Socket(response.getSocketAddress().getHostString(), response.getSocketAddress().getPort());
-            }
-        }
-        // this is only here so there is no warning in the IDE
-        return null;
     }
 
     //==================================================================================================================
