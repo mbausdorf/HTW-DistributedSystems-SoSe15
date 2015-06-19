@@ -7,3 +7,4 @@
 *.ipr
 *.iws
 /src/de/htw/ds/edge/*.mp4
+/src/de/htw/ds/shop/shop-mysql.properties
