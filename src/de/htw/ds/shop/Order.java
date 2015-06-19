@@ -6,6 +6,8 @@ import java.util.TreeSet;
 import de.sb.java.TypeMetadata;
 
 import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlElement;
+import javax.xml.bind.annotation.XmlRootElement;
 
 
 /**

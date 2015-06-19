@@ -188,7 +188,7 @@ public final class TcpSwitch implements Runnable, AutoCloseable {
 		 * @throws NullPointerException if any of the given arguments is {@code null}
 		 */
 		public ConnectionHandler (final Socket clientConnection, final ExecutorService threadPool, final InetSocketAddress[] nodeAddresses, final boolean sessionAware) {
-	
+
 			if (clientConnection == null | threadPool == null | nodeAddresses == null) throw new NullPointerException();
 
 			this.clientConnection = clientConnection;
@@ -214,12 +214,12 @@ public final class TcpSwitch implements Runnable, AutoCloseable {
 
 				if(this.sessionAware)
 				{
-					Random random = new Random(Long.parseLong(clientIP.replace(".","").replace(":","")));
+					Random random = new Random(clientIP.hashCode());
 					serverIndex = random.nextInt(this.nodeAddresses.length);
 				}
 				else
 				{
-					Random random = new Random();
+					Random random = ThreadLocalRandom.current();
 					serverIndex = random.nextInt(this.nodeAddresses.length);
 				}
 				InetSocketAddress target = this.nodeAddresses[serverIndex];
@@ -250,14 +250,15 @@ public final class TcpSwitch implements Runnable, AutoCloseable {
 						future1.get();
 						future2.get();
 					} catch (ExecutionException e) {
+						future1.cancel(true);
+						future2.cancel(true);
 						Throwable t = e.getCause();
-						if (t instanceof Error)
-							throw (Error) t;
-						throw (Exception) t;
+						if (t instanceof Error) throw (Error) t;
+						if (t instanceof RuntimeException) throw (RuntimeException) t;
+						if (t instanceof IOException) throw (IOException) t;
+						throw new AssertionError();
 					}
 				}
-			} catch (final Exception e) {
-				System.out.println(e.toString());
 			}
 		}
 	}

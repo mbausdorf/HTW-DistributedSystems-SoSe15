@@ -71,7 +71,7 @@ public class HttpRedirectHandler implements HttpHandler {
 				String redirectUrl = "http://" + redirectAddress.getHostName() + ":" + redirectAddress.getPort() + requestPath.replace("redirect/","");
 				// send response header
 				exchange.getResponseHeaders().add("Location",redirectUrl);
-				exchange.sendResponseHeaders(HTTP_REDIRECT,-1);
+				exchange.sendResponseHeaders(HTTP_REDIRECT, 0);
 			}
 			else{
 				//time offset not available
