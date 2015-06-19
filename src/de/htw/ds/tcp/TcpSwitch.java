@@ -12,10 +12,7 @@ import java.net.SocketException;
 import java.util.HashSet;
 import java.util.Random;
 import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
@@ -238,37 +235,30 @@ public final class TcpSwitch implements Runnable, AutoCloseable {
 			}
 		}
 
-		private void forwardConnectionToSelectedTarget(Socket clientConnection, Socket targetConnection) throws IOException{
-			Semaphore sem = new Semaphore(-1);
+		private void forwardConnectionToSelectedTarget(Socket clientConnection, Socket targetConnection) throws IOException {
 			int BUFFER_SIZE = 1024;
 
-				//long connectionOpenTime = System.currentTimeMillis();
-				try (OutputStream monitoredUpstream = targetConnection.getOutputStream()) {
-					executorService.submit(() -> {
-						try {
-							Streams.copy(clientConnection.getInputStream(), monitoredUpstream, BUFFER_SIZE);
-						} catch (IOException e) {
-							//
-						} finally {
-							sem.release();
-						}
-					});
+			//long connectionOpenTime = System.currentTimeMillis();
+			try (Socket _targetConnection = targetConnection) {
+				try (Socket _clientConnection = clientConnection) {
+					Callable<?> transporter1 = () -> Streams.copy(_clientConnection.getInputStream(), _targetConnection.getOutputStream(), BUFFER_SIZE);
+					Callable<?> transporter2 = () -> Streams.copy(_targetConnection.getInputStream(), _clientConnection.getOutputStream(), BUFFER_SIZE);
+					Future<?> future1 = executorService.submit(transporter1);
+					Future<?> future2 = executorService.submit(transporter2);
 
-					try (OutputStream monitoredDownstream = clientConnection.getOutputStream()) {
-						executorService.submit(() -> {
-							try {
-								Streams.copy(targetConnection.getInputStream(), monitoredDownstream, BUFFER_SIZE);
-							} catch (IOException e) {
-								//
-							} finally {
-								sem.release();
-							}
-						});
-
-						sem.acquireUninterruptibly();
+					try {
+						future1.get();
+						future2.get();
+					} catch (ExecutionException e) {
+						Throwable t = e.getCause();
+						if (t instanceof Error)
+							throw (Error) t;
+						throw (Exception) t;
 					}
 				}
-
+			} catch (final Exception e) {
+				System.out.println(e.toString());
+			}
 		}
 	}
 }
