@@ -227,6 +227,7 @@ public final class TcpSwitch implements Runnable, AutoCloseable {
 			}
 			catch (Exception e)
 			{
+				System.out.println("exception");
 				// blackjack and hookers
 			}
 		}

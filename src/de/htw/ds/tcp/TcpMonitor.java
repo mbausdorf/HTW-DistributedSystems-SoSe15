@@ -8,9 +8,7 @@ import java.net.SocketException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.*;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
@@ -66,80 +64,39 @@ public final class TcpMonitor implements Runnable, AutoCloseable {
 		 */
 		public void run () {
 			try (Socket serverConnection = new Socket(this.forwardAddress.getHostName(), this.forwardAddress.getPort())) {
-				Semaphore sem = new Semaphore(-1);
+				try (Socket clientConnection = this.clientConnection) {
+					try (ByteArrayOutputStream upstreamLogBuffer = new ByteArrayOutputStream()) {
+						try (ByteArrayOutputStream downstreamLogBuffer = new ByteArrayOutputStream()) {
+							long connectionOpenTime = System.currentTimeMillis();
+							try (MultiOutputStream monitoredUpstream =
+										 new MultiOutputStream(serverConnection.getOutputStream(), upstreamLogBuffer)) {
+								try (MultiOutputStream monitoredDownstream =
+											 new MultiOutputStream(clientConnection.getOutputStream(), downstreamLogBuffer)) {
 
-				try (ByteArrayOutputStream upstreamLogBuffer = new ByteArrayOutputStream();
-					 ByteArrayOutputStream downstreamLogBuffer = new ByteArrayOutputStream()) {
-					long connectionOpenTime = System.currentTimeMillis();
-					try (MultiOutputStream monitoredUpstream =
-								 new MultiOutputStream(serverConnection.getOutputStream(), upstreamLogBuffer)) {
-						executorService.submit(() -> {
-							try {
-								Streams.copy(clientConnection.getInputStream(), monitoredUpstream, BUFFER_SIZE);
-							} catch (IOException e) {
-								this.watcher.exceptionCatched(e);
-							} finally {
-								sem.release();
-							}
-						});
+									Callable<?> transporter1 = () -> Streams.copy(clientConnection.getInputStream(), monitoredUpstream, BUFFER_SIZE);
+									Callable<?> transporter2 = () -> Streams.copy(serverConnection.getInputStream(), monitoredDownstream, BUFFER_SIZE);
+									Future<?> future1 = executorService.submit(transporter1);
+									Future<?> future2 = executorService.submit(transporter2);
 
-						try (MultiOutputStream monitoredDownstream =
-									 new MultiOutputStream(clientConnection.getOutputStream(), downstreamLogBuffer)) {
-							executorService.submit(() -> {
-								try {
-									Streams.copy(serverConnection.getInputStream(), monitoredDownstream, BUFFER_SIZE);
-								} catch (IOException e) {
-									this.watcher.exceptionCatched(e);
-								} finally {
-									sem.release();
+									try {
+										future1.get();
+										future2.get();
+									}
+									catch (ExecutionException e) {
+										Throwable t = e.getCause();
+										if (t instanceof Error)
+											throw (Error)t;
+										throw (Exception)t;
+									}
+									long connectionCloseTime = System.currentTimeMillis();
+									this.watcher.recordCreated(new TcpMonitorRecord(connectionOpenTime, connectionCloseTime, upstreamLogBuffer.toByteArray(), downstreamLogBuffer.toByteArray()));
 								}
-							});
-
-							sem.acquireUninterruptibly();
-							long connectionCloseTime = System.currentTimeMillis();
-							this.watcher.recordCreated(new TcpMonitorRecord(connectionOpenTime,connectionCloseTime,upstreamLogBuffer.toByteArray(),downstreamLogBuffer.toByteArray()));
+							}
 						}
 					}
 				}
-
-				// TODO: Transport all content from the client connection's input stream into
-				// both the server connection's output stream and a byte output stream. In
-				// parallel, transport all content from the server connection's input stream
-				// into both the client connection's output stream and another byte output stream.
-				// Note that the existing utility classes MultiInputStream, MultiOutputStream and
-				// Streams#copy() might allow a highly elegant (and slim) solution, especially
-				// in conjunction with Java 8 Lambda-Operators. 
-
-				// Start two transporter threads, and resynchronize them before closing all
-				// resources; any exceptions acquired from the child threads should be logged
-				// using "this.watcher.exceptionCatched()" - see code below. If all goes well,
-				// use "ByteArrayOutputStream#toByteArray()" to get the respective request and
-				// response data; use it to create a TcpMonitorRecord, and flush a log output
-				// using "this.watcher.recordCreated()".
-
-				// Note that you'll need 2 transporters in 1-2 separate threads to complete this
-				// tasks, as you cannot foresee if the client or the server closes the connection,
-				// or if the protocol communicated involves handshakes. Either case implies you'd
-				// end up reading "too much" if you try to transport both communication directions
-				// within this thread, creating a deadlock scenario! The easiest solution probably
-				// involves the ConnectionHandler's executor service (see Method submit()), and
-				// resynchronization using the futures returned by this method. Finally, beware that
-				// HTTP usually implies delayed closing of connections after transmissions due to
-				// connection caching.
-
-				// Especially make sure that all connections and files are properly closed in
-				// any circumstances! Note that closing one socket stream closes the underlying
-				// socket connection (and therefore also the second socket stream) as well. Also
-				// note that a SocketInputStream's read() method will throw a SocketException when
-				// interrupted while blocking, which is "normal" behavior and should be handled as
-				// if the read() Method returned -1!
 			} catch (final Exception exception) {
 				this.watcher.exceptionCatched(exception);
-			} finally {
-				try {
-					this.clientConnection.close();
-				} catch (final Exception exception) {
-				}
 			}
 		}
 	}
