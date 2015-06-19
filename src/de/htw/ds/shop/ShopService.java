@@ -4,10 +4,15 @@ import java.util.Collection;
 import java.util.SortedSet;
 import de.sb.java.TypeMetadata;
 
+import javax.jws.Oneway;
+import javax.jws.WebParam;
+import javax.jws.WebService;
+
 
 /**
  * Shop SOAP service interface.
  */
+@WebService
 @TypeMetadata(copyright = "2010-2015 Sascha Baumeister, all rights reserved", version = "0.3.0", authors = "Sascha Baumeister")
 public interface ShopService {
 
@@ -18,7 +23,11 @@ public interface ShopService {
 	 * @param password the customer password
 	 * @param orderIdentity the order identity
 	 */
-	void cancelOrder (String alias, String password, long orderIdentity);
+	@Oneway
+	void cancelOrder (
+			@WebParam(name = "alias") String alias,
+			@WebParam(name = "password") String password,
+			@WebParam(name = "orderIdentity") long orderIdentity);
 
 
 	/**
@@ -30,14 +39,17 @@ public interface ShopService {
 	 * @param items the order items
 	 * @return the order identity
 	 */
-	long createOrder (String alias, String password, Collection<OrderItem> items);
+	long createOrder (
+			@WebParam(name = "alias") String alias,
+			@WebParam(name = "password") String password,
+			@WebParam(name = "items") Collection<OrderItem> items);
 
 
 	/**
 	 * Returns the article data for the given identity.
 	 * @param articleIdentity the article identity
 	 */
-	Article queryArticle (long articleIdentity);
+	Article queryArticle (@WebParam(name = "articleIdentity") long articleIdentity);
 
 
 	/**
@@ -52,7 +64,9 @@ public interface ShopService {
 	 * @param password the customer password
 	 * @return the customer matching the given alias and password
 	 */
-	Customer queryCustomer (String alias, String password);
+	Customer queryCustomer (
+			@WebParam(name = "alias") String alias,
+			@WebParam(name = "password") String password);
 
 
 	/**
@@ -62,7 +76,10 @@ public interface ShopService {
 	 * @param orderIdentity the order identity
 	 * @return the customer's order
 	 */
-	Order queryOrder (String alias, String password, long orderIdentity);
+	Order queryOrder (
+			@WebParam(name = "alias") String alias,
+			@WebParam(name = "password") String password,
+			@WebParam(name = "orderIdentity") long orderIdentity);
 
 
 	/**
@@ -73,7 +90,9 @@ public interface ShopService {
 	 * @throws NullPointerException if one of the given values is {@code null}
 	 * @throws IllegalStateException if the login data is invalid
 	 */
-	SortedSet<Order> queryOrders (String alias, String password);
+	SortedSet<Order> queryOrders (
+			@WebParam(name = "alias") String alias,
+			@WebParam(name = "password") String password);
 
 
 	/**
@@ -83,7 +102,9 @@ public interface ShopService {
 	 * @param String password
 	 * @return the customer identity
 	 */
-	long registerCustomer (Customer customer, String password);
+	long registerCustomer (
+			@WebParam(name = "customer") Customer customer,
+			@WebParam(name = "password") String password);
 
 
 	/**
@@ -92,5 +113,7 @@ public interface ShopService {
 	 * @param password the customer password
 	 * @return the customer identity
 	 */
-	long unregisterCustomer (String alias, String password);
+	long unregisterCustomer (
+			@WebParam(name = "alias") String alias,
+			@WebParam(name = "password") String password);
 }

@@ -5,11 +5,14 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 import de.sb.java.TypeMetadata;
 
+import javax.xml.bind.annotation.XmlAttribute;
+
 
 /**
  * This class models simplistic orders. Note that this entity is equivalent to the "purchase" table,
  * because "order" is a reserved word in SQL.
  */
+@XmlRootElement
 @TypeMetadata(copyright = "2010-2015 Sascha Baumeister, all rights reserved", version = "0.3.0", authors = "Sascha Baumeister")
 public class Order extends Entity {
 	static private final long serialVersionUID = 1L;
@@ -32,6 +35,7 @@ public class Order extends Entity {
 	 * Returns the creation time stamp in milliseconds since 1/1/1970.
 	 * @return the creation time stamp
 	 */
+	@XmlAttribute
 	public long getCreationTimestamp () {
 		return this.creationTimestamp;
 	}
@@ -41,6 +45,7 @@ public class Order extends Entity {
 	 * Returns the identity of the related customer.
 	 * @return the customer identity
 	 */
+	@XmlAttribute
 	public long getCustomerIdentity () {
 		return this.customerIdentity;
 	}
@@ -50,6 +55,7 @@ public class Order extends Entity {
 	 * Returns the gross sum.
 	 * @return the gross sum
 	 */
+	@XmlAttribute
 	public long getGrossPrice () {
 		int grossPrice = 0;
 		for (final OrderItem item : this.items) {
@@ -63,6 +69,7 @@ public class Order extends Entity {
 	 * Returns the number of items.
 	 * @return the item count
 	 */
+	@XmlAttribute
 	public int getItemCount () {
 		return this.items.size();
 	}
@@ -72,6 +79,7 @@ public class Order extends Entity {
 	 * Returns the related order items.
 	 * @return the order items
 	 */
+	@XmlElement
 	public SortedSet<OrderItem> getItems () {
 		return this.items;
 	}
@@ -81,6 +89,7 @@ public class Order extends Entity {
 	 * Returns the net sum.
 	 * @return the net sum
 	 */
+	@XmlAttribute
 	public long getNetPrice () {
 		return this.getGrossPrice() + this.getTax();
 	}
@@ -90,6 +99,7 @@ public class Order extends Entity {
 	 * Returns the tax sum.
 	 * @return the tax sum
 	 */
+	@XmlAttribute
 	public long getTax () {
 		return Math.round(this.getGrossPrice() * this.getTaxRate());
 	}
@@ -99,6 +109,7 @@ public class Order extends Entity {
 	 * Returns the tax rate.
 	 * @return the tax rate
 	 */
+	@XmlAttribute
 	public double getTaxRate () {
 		return this.taxRate;
 	}

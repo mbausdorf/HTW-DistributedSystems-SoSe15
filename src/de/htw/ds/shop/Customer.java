@@ -2,10 +2,14 @@ package de.htw.ds.shop;
 
 import de.sb.java.TypeMetadata;
 
+import javax.xml.bind.annotation.XmlAttribute;
+import javax.xml.bind.annotation.XmlRootElement;
+
 
 /**
  * This class models simplistic customers.
  */
+@XmlRootElement
 @TypeMetadata(copyright = "2010-2015 Sascha Baumeister, all rights reserved", version = "0.3.0", authors = "Sascha Baumeister")
 public class Customer extends Entity {
 	static private final long serialVersionUID = 1L;
@@ -24,6 +28,7 @@ public class Customer extends Entity {
 	 * Returns the unique alias.
 	 * @return the alias
 	 */
+	@XmlAttribute
 	public String getAlias () {
 		return this.alias;
 	}
@@ -33,6 +38,7 @@ public class Customer extends Entity {
 	 * Returns the city.
 	 * @return the city
 	 */
+	@XmlAttribute
 	public String getCity () {
 		return this.city;
 	}
@@ -42,6 +48,7 @@ public class Customer extends Entity {
 	 * Returns the e-mail address.
 	 * @return the e-mail address
 	 */
+	@XmlAttribute
 	public String getEmail () {
 		return this.email;
 	}
@@ -51,6 +58,7 @@ public class Customer extends Entity {
 	 * Returns the family name.
 	 * @return the family name
 	 */
+	@XmlAttribute
 	public String getFamilyName () {
 		return this.familyName;
 	}
@@ -60,6 +68,7 @@ public class Customer extends Entity {
 	 * Returns the given name.
 	 * @return the given name
 	 */
+	@XmlAttribute
 	public String getGivenName () {
 		return this.givenName;
 	}
@@ -69,6 +78,7 @@ public class Customer extends Entity {
 	 * Returns the phone number.
 	 * @return the phone number
 	 */
+	@XmlAttribute
 	public String getPhone () {
 		return this.phone;
 	}
@@ -78,6 +88,7 @@ public class Customer extends Entity {
 	 * Returns the post code.
 	 * @return the post code
 	 */
+	@XmlAttribute
 	public String getPostcode () {
 		return this.postcode;
 	}
@@ -87,6 +98,7 @@ public class Customer extends Entity {
 	 * Returns the street and street number.
 	 * @return the street
 	 */
+	@XmlAttribute
 	public String getStreet () {
 		return this.street;
 	}
