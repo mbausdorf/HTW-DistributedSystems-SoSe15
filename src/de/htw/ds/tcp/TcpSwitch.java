@@ -10,6 +10,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.HashSet;
+import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -208,16 +209,21 @@ public final class TcpSwitch implements Runnable, AutoCloseable {
 			try(Socket localClientConn = clientConnection){
 				String clientIP = localClientConn.getInetAddress().getHostAddress();
 				int serverIndex;
-				ThreadLocalRandom tlr = ThreadLocalRandom.current();
+
+				/**
+				 * not using ThreadLocalRandom because setting a seed is not supported
+				 * //Random random = ThreadLocalRandom.current();
+				 */
 
 				if(this.sessionAware)
 				{
-					tlr.setSeed(Long.parseLong(clientIP.replace(".","")));
-					serverIndex = tlr.nextInt(this.nodeAddresses.length);
+					Random random = new Random(Long.parseLong(clientIP.replace(".","").replace(":","")));
+					serverIndex = random.nextInt(this.nodeAddresses.length);
 				}
 				else
 				{
-					serverIndex = tlr.nextInt(this.nodeAddresses.length);
+					Random random = new Random();
+					serverIndex = random.nextInt(this.nodeAddresses.length);
 				}
 				InetSocketAddress target = this.nodeAddresses[serverIndex];
 
@@ -227,8 +233,8 @@ public final class TcpSwitch implements Runnable, AutoCloseable {
 			}
 			catch (Exception e)
 			{
-				System.out.println("exception");
 				// blackjack and hookers
+				System.out.println(e.toString());
 			}
 		}
 
