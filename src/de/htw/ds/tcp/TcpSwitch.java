@@ -246,7 +246,7 @@ public final class TcpSwitch implements Runnable, AutoCloseable {
 					Future<?> future1 = executorService.submit(transporter1);
 					Future<?> future2 = executorService.submit(transporter2);
 
-					try {
+					/*try {
 						future1.get();
 						future2.get();
 					} catch (ExecutionException e) {
@@ -257,7 +257,7 @@ public final class TcpSwitch implements Runnable, AutoCloseable {
 						if (t instanceof RuntimeException) throw (RuntimeException) t;
 						if (t instanceof IOException) throw (IOException) t;
 						throw new AssertionError();
-					}
+					}*/
 				}
 			}
 		}
