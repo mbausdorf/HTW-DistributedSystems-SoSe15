@@ -18,7 +18,7 @@ import java.util.SortedSet;
 /**
  * Created by Markus on 19.06.2015.
  */
-@WebService(endpointInterface = "de.htw.ds.chat.SoapChatService", serviceName = "SoapChatService")
+@WebService(endpointInterface = "de.htw.ds.shop.ShopService", serviceName = "ShopService")
 public class ShopServer implements ShopService, AutoCloseable {
     private final URI serviceURI;
     private final Endpoint endpoint;
