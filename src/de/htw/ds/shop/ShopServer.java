@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.security.MessageDigest;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.SortedSet;
@@ -86,7 +87,9 @@ public class ShopServer implements ShopService, AutoCloseable {
 
     public synchronized void cancelOrder(String alias, String password, long orderIdentity) {
         try{
-            this.jdbcConnector.deleteOrder(alias,password.getBytes(),orderIdentity);
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(password.getBytes("UTF-8"));
+            this.jdbcConnector.deleteOrder(alias,hash,orderIdentity);
             this.jdbcConnector.getConnection().commit();
         } catch(Exception se) {
             try {
@@ -102,7 +105,9 @@ public class ShopServer implements ShopService, AutoCloseable {
     public synchronized long createOrder(String alias, String password, Collection<OrderItem> items) {
         long orderNumber;
         try{
-            orderNumber = this.jdbcConnector.insertOrder(alias,password.getBytes(),this.taxRate,items);
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(password.getBytes("UTF-8"));
+            orderNumber = this.jdbcConnector.insertOrder(alias,hash,this.taxRate,items);
             this.jdbcConnector.getConnection().commit();
             return orderNumber;
         } catch(Exception se) {
@@ -156,7 +161,9 @@ public class ShopServer implements ShopService, AutoCloseable {
     public synchronized Customer queryCustomer(String alias, String password) {
         Customer customer;
         try{
-            customer = this.jdbcConnector.queryCustomer(alias, password.getBytes());
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(password.getBytes("UTF-8"));
+            customer = this.jdbcConnector.queryCustomer(alias, hash);
             this.jdbcConnector.getConnection().commit();
             return customer;
         } catch(Exception se) {
@@ -174,7 +181,9 @@ public class ShopServer implements ShopService, AutoCloseable {
     public synchronized Order queryOrder(String alias, String password, long orderIdentity) {
         Order order;
         try{
-            order = this.jdbcConnector.queryOrder(alias,password.getBytes(),orderIdentity);
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(password.getBytes("UTF-8"));
+            order = this.jdbcConnector.queryOrder(alias,hash,orderIdentity);
             this.jdbcConnector.getConnection().commit();
             return order;
         } catch(Exception se) {
@@ -192,7 +201,9 @@ public class ShopServer implements ShopService, AutoCloseable {
     public synchronized SortedSet<Order> queryOrders(String alias, String password) {
         SortedSet<Order> orders;
         try{
-            orders = this.jdbcConnector.queryOrders(alias,password.getBytes());
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(password.getBytes("UTF-8"));
+            orders = this.jdbcConnector.queryOrders(alias,hash);
             this.jdbcConnector.getConnection().commit();
             return orders;
         } catch(Exception se) {
@@ -210,7 +221,9 @@ public class ShopServer implements ShopService, AutoCloseable {
     public synchronized long registerCustomer(Customer customer, String password) {
         long customerNo;
         try{
-            customerNo = this.jdbcConnector.insertCustomer(customer.getAlias(),password.getBytes(),
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(password.getBytes("UTF-8"));
+            customerNo = this.jdbcConnector.insertCustomer(customer.getAlias(),hash,
                     customer.getGivenName(),customer.getFamilyName(),customer.getStreet(),customer.getPostcode(),
                     customer.getCity(),customer.getEmail(),customer.getPhone());
             this.jdbcConnector.getConnection().commit();
@@ -230,7 +243,9 @@ public class ShopServer implements ShopService, AutoCloseable {
     public synchronized long unregisterCustomer(String alias, String password) {
         long customerNo;
         try{
-            customerNo = this.jdbcConnector.deleteCustomer(alias,password.getBytes());
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(password.getBytes("UTF-8"));
+            customerNo = this.jdbcConnector.deleteCustomer(alias,hash);
             this.jdbcConnector.getConnection().commit();
             return customerNo;
         } catch(Exception se) {
