@@ -22,7 +22,7 @@ import java.util.SortedSet;
 public class ShopServer implements ShopService, AutoCloseable {
     private final URI serviceURI;
     private final Endpoint endpoint;
-    private final ShopConnector jdbcConnector;
+    private ShopConnector jdbcConnector;
     private final double taxRate;
 
     public ShopServer(int servicePort , String serviceName, double taxRate )
@@ -80,69 +80,168 @@ public class ShopServer implements ShopService, AutoCloseable {
         return this.serviceURI;
     }
 
-    @Override
     public void close() throws Exception {
         this.endpoint.stop();
     }
 
-    @Override
     public synchronized void cancelOrder(String alias, String password, long orderIdentity) {
-
+        try{
+            this.jdbcConnector.deleteOrder(alias,password.getBytes(),orderIdentity);
+            this.jdbcConnector.getConnection().commit();
+        } catch(Exception se) {
+            try {
+                if (this.jdbcConnector.getConnection() != null)
+                    this.jdbcConnector.getConnection().rollback();
+            } catch (SQLException se2) {
+                se2.printStackTrace();
+            }
+            // according to task 3, we should throw an exception here, but we can't
+        }
     }
 
-    @Override
-    public long createOrder(String alias, String password, Collection<OrderItem> items) {
+    public synchronized long createOrder(String alias, String password, Collection<OrderItem> items) {
         long orderNumber;
         try{
             orderNumber = this.jdbcConnector.insertOrder(alias,password.getBytes(),this.taxRate,items);
-        } catch (Exception exception){
-            this.jdbcConnector.getConnection().rollback();
-            throw exception;
+            this.jdbcConnector.getConnection().commit();
+            return orderNumber;
+        } catch(Exception se) {
+            try {
+                if (this.jdbcConnector.getConnection() != null)
+                    this.jdbcConnector.getConnection().rollback();
+            } catch (SQLException se2) {
+                se2.printStackTrace();
+            }
+            // according to task 3, we should throw an exception here, but we can't
         }
-
-        return orderNumber;
+        return 0;
     }
 
-    @Override
     public synchronized Article queryArticle(long articleIdentity) {
         Article article;
         try{
             article = this.jdbcConnector.queryArticle(articleIdentity);
-        } catch (Exception exception){
-            this.jdbcConnector.getConnection().rollback();
-            throw exception;
+            this.jdbcConnector.getConnection().commit();
+            return article;
+        } catch(Exception se) {
+            try {
+                if (this.jdbcConnector.getConnection() != null)
+                    this.jdbcConnector.getConnection().rollback();
+            } catch (SQLException se2) {
+                se2.printStackTrace();
+            }
+            // according to task 3, we should throw an exception here, but we can't
         }
-
-        return article;
-    }
-
-    @Override
-    public SortedSet<Article> queryArticles() {
         return null;
     }
 
-    @Override
-    public Customer queryCustomer(String alias, String password) {
+    public synchronized SortedSet<Article> queryArticles() {
+        SortedSet<Article> articles;
+        try{
+            articles = this.jdbcConnector.queryArticles();
+            this.jdbcConnector.getConnection().commit();
+            return articles;
+        } catch(Exception se) {
+            try {
+                if (this.jdbcConnector.getConnection() != null)
+                    this.jdbcConnector.getConnection().rollback();
+            } catch (SQLException se2) {
+                se2.printStackTrace();
+            }
+            // according to task 3, we should throw an exception here, but we can't
+        }
         return null;
     }
 
-    @Override
-    public Order queryOrder(String alias, String password, long orderIdentity) {
+    public synchronized Customer queryCustomer(String alias, String password) {
+        Customer customer;
+        try{
+            customer = this.jdbcConnector.queryCustomer(alias, password.getBytes());
+            this.jdbcConnector.getConnection().commit();
+            return customer;
+        } catch(Exception se) {
+            try {
+                if (this.jdbcConnector.getConnection() != null)
+                    this.jdbcConnector.getConnection().rollback();
+            } catch (SQLException se2) {
+                se2.printStackTrace();
+            }
+            // according to task 3, we should throw an exception here, but we can't
+        }
         return null;
     }
 
-    @Override
-    public SortedSet<Order> queryOrders(String alias, String password) {
+    public synchronized Order queryOrder(String alias, String password, long orderIdentity) {
+        Order order;
+        try{
+            order = this.jdbcConnector.queryOrder(alias,password.getBytes(),orderIdentity);
+            this.jdbcConnector.getConnection().commit();
+            return order;
+        } catch(Exception se) {
+            try {
+                if (this.jdbcConnector.getConnection() != null)
+                    this.jdbcConnector.getConnection().rollback();
+            } catch (SQLException se2) {
+                se2.printStackTrace();
+            }
+            // according to task 3, we should throw an exception here, but we can't
+        }
         return null;
     }
 
-    @Override
-    public long registerCustomer(Customer customer, String password) {
+    public synchronized SortedSet<Order> queryOrders(String alias, String password) {
+        SortedSet<Order> orders;
+        try{
+            orders = this.jdbcConnector.queryOrders(alias,password.getBytes());
+            this.jdbcConnector.getConnection().commit();
+            return orders;
+        } catch(Exception se) {
+            try {
+                if (this.jdbcConnector.getConnection() != null)
+                    this.jdbcConnector.getConnection().rollback();
+            } catch (SQLException se2) {
+                se2.printStackTrace();
+            }
+            // according to task 3, we should throw an exception here, but we can't
+        }
+        return null;
+    }
+
+    public synchronized long registerCustomer(Customer customer, String password) {
+        long customerNo;
+        try{
+            customerNo = this.jdbcConnector.insertCustomer(customer.getAlias(),password.getBytes(),
+                    customer.getGivenName(),customer.getFamilyName(),customer.getStreet(),customer.getPostcode(),
+                    customer.getCity(),customer.getEmail(),customer.getPhone());
+            this.jdbcConnector.getConnection().commit();
+            return customerNo;
+        } catch(Exception se) {
+            try {
+                if (this.jdbcConnector.getConnection() != null)
+                    this.jdbcConnector.getConnection().rollback();
+            } catch (SQLException se2) {
+                se2.printStackTrace();
+            }
+            // according to task 3, we should throw an exception here, but we can't
+        }
         return 0;
     }
 
-    @Override
-    public long unregisterCustomer(String alias, String password) {
+    public synchronized long unregisterCustomer(String alias, String password) {
+        long customerNo;
+        try{
+            customerNo = this.jdbcConnector.deleteCustomer(alias,password.getBytes());
+            this.jdbcConnector.getConnection().commit();
+            return customerNo;
+        } catch(Exception se) {
+            try {
+                if (this.jdbcConnector.getConnection() != null)
+                    this.jdbcConnector.getConnection().rollback();
+            } catch (SQLException se2) {
+                se2.printStackTrace();
+            }
+            // according to task 3, we should throw an exception here, but we can't
+        }
         return 0;
     }
 }
