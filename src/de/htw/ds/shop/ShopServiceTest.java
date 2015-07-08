@@ -12,6 +12,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.SQLException;
 import java.sql.Savepoint;
+import java.util.Collection;
 
 public class ShopServiceTest  {
     private static final int servicePort = 5555;
@@ -20,7 +21,7 @@ public class ShopServiceTest  {
 
     private static Service proxyFactory;
     private Savepoint sp;
-    ShopService service;
+    static ShopService serviceProxy;
     static ShopServer server;
 
     @BeforeClass
@@ -30,6 +31,7 @@ public class ShopServiceTest  {
         try {
             final URL wsdlLocator = new URL(server.getServiceURI().toASCIIString() + "?wsdl");
             proxyFactory = Service.create(wsdlLocator, Namespaces.toQualifiedName(ShopService.class));
+            serviceProxy = proxyFactory.getPort(ShopService.class);
         }
         catch (MalformedURLException e) {
             throw new AssertionError("Server-URL ungültig");
@@ -38,7 +40,6 @@ public class ShopServiceTest  {
 
     @Before
     public void preTest() {
-        service = proxyFactory.getPort(ShopService.class);
         try {
             sp = server.getJdbcConnector().getConnection().setSavepoint("UnitTest");
         }
@@ -59,7 +60,13 @@ public class ShopServiceTest  {
 
     @Test
     public void testQueryArticle() {
-        final Article article = service.queryArticle(1);
+        final Article article = serviceProxy.queryArticle(1);
         assertEquals("Beschreibung", "CARIOCA Fahrrad-Schlauch, 28x1.5 Zoll", article.getDescription());
+    }
+
+    @Test
+    public void testQueryarticles() {
+        final Collection<Article> articles = serviceProxy.queryArticles();
+        assertEquals("anzahl artikel", 3, articles.size());
     }
 }

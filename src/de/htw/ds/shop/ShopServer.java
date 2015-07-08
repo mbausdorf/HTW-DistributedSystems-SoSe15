@@ -130,7 +130,6 @@ public class ShopServer implements ShopService, AutoCloseable {
         Article article;
         try{
             article = this.jdbcConnector.queryArticle(articleIdentity);
-            this.jdbcConnector.getConnection().commit();
             return article;
         } catch(Exception se) {
             try {
@@ -148,7 +147,6 @@ public class ShopServer implements ShopService, AutoCloseable {
         SortedSet<Article> articles;
         try{
             articles = this.jdbcConnector.queryArticles();
-            this.jdbcConnector.getConnection().commit();
             return articles;
         } catch(Exception se) {
             try {
