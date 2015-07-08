@@ -15,9 +15,8 @@ import java.sql.Savepoint;
 
 public class ShopServiceTest  {
     private static final int servicePort = 5555;
-    private static final String serviceName = "JaxShopService";
+    private static final String serviceName = "ShopService";
     private static final double taxRate = 0.19;
-    private static final String host = "http://localhost:5555/";
 
     private static Service proxyFactory;
     private Savepoint sp;
@@ -29,7 +28,7 @@ public class ShopServiceTest  {
         server = new ShopServer(servicePort, serviceName, taxRate);
 
         try {
-            final URL wsdlLocator = new URL(host + "?wsdl");
+            final URL wsdlLocator = new URL(server.getServiceURI().toASCIIString() + "?wsdl");
             proxyFactory = Service.create(wsdlLocator, Namespaces.toQualifiedName(ShopService.class));
         }
         catch (MalformedURLException e) {

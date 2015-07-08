@@ -72,6 +72,10 @@ public class ShopServer implements ShopService, AutoCloseable {
         }
     }
 
+    public ShopConnector getJdbcConnector() {
+        return this.jdbcConnector;
+    }
+
     /**
      * Returns the service URI.
      * @return the service URI
