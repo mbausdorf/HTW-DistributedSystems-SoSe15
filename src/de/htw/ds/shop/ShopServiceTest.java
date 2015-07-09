@@ -1,21 +1,18 @@
 package de.htw.ds.shop;
 
 import de.sb.java.xml.Namespaces;
-import org.hamcrest.Description;
-import org.hamcrest.Matcher;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.BeforeClass;
-import org.junit.Test;
+import org.junit.*;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 import javax.xml.ws.Service;
+import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.SQLException;
 import java.sql.Savepoint;
+import java.sql.Statement;
 import java.util.Collection;
 
 public class ShopServiceTest  {
@@ -38,28 +35,48 @@ public class ShopServiceTest  {
             serviceProxy = proxyFactory.getPort(ShopService.class);
         }
         catch (MalformedURLException e) {
-            throw new AssertionError("Server-URL ung�ltig");
+            throw new AssertionError("Server-URL ungültig");
         }
     }
 
     @Before
-    public void preTest() {
-        /*try {
-            sp = server.getJdbcConnector().getConnection().setSavepoint("UnitTest");
-        }
-        catch(SQLException e) {
-            throw new AssertionError("Konnte keinen Savepoint erstellen");
-        }*/
+    public void beforeTest() {
+        reloadData();
     }
 
-    @After
-    public void postTest() {
-        /*try {
-            server.getJdbcConnector().getConnection().rollback(sp);
+    @AfterClass
+    public static void reloadData() {
+        try (BufferedReader f = new BufferedReader(new FileReader("src/de/htw/ds/shop/shop-mysql-data.ddl"))) {
+            Statement stmt = server.getJdbcConnector().getConnection().createStatement();
+            server.getJdbcConnector().getConnection().setAutoCommit(false);
+            String line;
+            String query = "";
+            while ((line = f.readLine()) != null) {
+                if (line.startsWith("--") || line.length() == 0)
+                    continue;
+
+                query += line;
+
+                if (query.endsWith(";")) {
+                    stmt.execute(query);
+                    query = "";
+                }
+            }
+            server.getJdbcConnector().getConnection().commit();
         }
         catch(SQLException e) {
-            throw new AssertionError("Konnte den Zustand vor dem Test nicht wiederherstellen");
-        }*/
+            try {
+                ShopConnector conn = server.getJdbcConnector();
+                if (conn.getConnection() != null)
+                    conn.getConnection().rollback();
+            } catch (SQLException se2) {
+                throw new AssertionError("Database error, could not perform rollback.");
+            }
+            throw new AssertionError(e.getMessage());
+        }
+        catch(IOException e) {
+            throw new AssertionError(e.getMessage());
+        }
     }
 
     @Test
