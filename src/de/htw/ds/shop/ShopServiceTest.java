@@ -3,7 +3,7 @@ package de.htw.ds.shop;
 import de.sb.java.xml.Namespaces;
 import org.junit.*;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import javax.xml.ws.Service;
@@ -114,9 +114,16 @@ public class ShopServiceTest  {
     @Test
     public void testQueryCustomer() {
         Customer sascha = serviceProxy.queryCustomer("sascha", "sascha");
-
         assertThat(sascha.getAlias(), is("sascha"));
         assertThat(sascha.getFamilyName(), is("Baumeister"));
         assertThat(sascha.getPostcode(), is("10999"));
+    }
+    
+    @Test
+    public void testUnregisterCustomer() {
+        long customerNum = serviceProxy.unregisterCustomer("sascha", "sascha");
+        assertThat(customerNum, not(0));
+        Customer foundCustomer = serviceProxy.queryCustomer("sascha", "sascha");
+        assertThat(foundCustomer, is(nullValue()));
     }
 }
