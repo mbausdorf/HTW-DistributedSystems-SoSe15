@@ -1,5 +1,8 @@
 package de.htw.ds.shop;
 
+import java.io.UnsupportedEncodingException;
+import java.security.NoSuchAlgorithmException;
+import java.sql.SQLException;
 import java.util.Collection;
 import java.util.SortedSet;
 import de.sb.java.TypeMetadata;
@@ -23,11 +26,10 @@ public interface ShopService {
 	 * @param password the customer password
 	 * @param orderIdentity the order identity
 	 */
-	@Oneway
 	void cancelOrder (
 			@WebParam(name = "alias") String alias,
 			@WebParam(name = "password") String password,
-			@WebParam(name = "orderIdentity") long orderIdentity);
+			@WebParam(name = "orderIdentity") long orderIdentity) throws NoSuchAlgorithmException, UnsupportedEncodingException, SQLException, IllegalStateException;
 
 
 	/**
@@ -42,7 +44,7 @@ public interface ShopService {
 	long createOrder (
 			@WebParam(name = "alias") String alias,
 			@WebParam(name = "password") String password,
-			@WebParam(name = "items") Collection<OrderItem> items);
+			@WebParam(name = "items") Collection<OrderItem> items)  throws NoSuchAlgorithmException, UnsupportedEncodingException, SQLException;
 
 
 	/**

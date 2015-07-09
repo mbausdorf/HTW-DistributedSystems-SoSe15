@@ -9,9 +9,11 @@ import javax.xml.ws.soap.SOAPBinding;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.SortedSet;
@@ -89,7 +91,7 @@ public class ShopServer implements ShopService, AutoCloseable {
         this.endpoint.stop();
     }
 
-    public synchronized void cancelOrder(String alias, String password, long orderIdentity) {
+    public synchronized void cancelOrder(String alias, String password, long orderIdentity) throws NoSuchAlgorithmException, UnsupportedEncodingException, SQLException {
         try{
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
             byte[] hash = digest.digest(password.getBytes("UTF-8"));
@@ -102,11 +104,11 @@ public class ShopServer implements ShopService, AutoCloseable {
             } catch (SQLException se2) {
                 se2.printStackTrace();
             }
-            // according to task 3, we should throw an exception here, but we can't
+            throw se;
         }
     }
 
-    public synchronized long createOrder(String alias, String password, Collection<OrderItem> items) {
+    public synchronized long createOrder(String alias, String password, Collection<OrderItem> items) throws NoSuchAlgorithmException, UnsupportedEncodingException, SQLException {
         long orderNumber;
         try{
             MessageDigest digest = MessageDigest.getInstance("SHA-256");
@@ -121,9 +123,8 @@ public class ShopServer implements ShopService, AutoCloseable {
             } catch (SQLException se2) {
                 se2.printStackTrace();
             }
-            // according to task 3, we should throw an exception here, but we can't
+            throw se;
         }
-        return 0;
     }
 
     public synchronized Article queryArticle(long articleIdentity) {

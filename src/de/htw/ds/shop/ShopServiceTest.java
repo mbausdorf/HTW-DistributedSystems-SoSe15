@@ -1,5 +1,6 @@
 package de.htw.ds.shop;
 
+import com.sun.xml.internal.ws.fault.ServerSOAPFaultException;
 import de.sb.java.xml.Namespaces;
 
 import org.junit.*;
@@ -15,6 +16,7 @@ import java.net.URL;
 import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.SortedSet;
 
@@ -131,10 +133,58 @@ public class ShopServiceTest  {
     }
     
     @Test 
-    public void testCancelOrder() {
+    public void testCancelOrderTooOld() {
     	SortedSet<Order> orders = serviceProxy.queryOrders("sascha", "sascha");
-    	serviceProxy.cancelOrder("sascha", "sascha", orders.first().getIdentity());
+        try {
+            serviceProxy.cancelOrder("sascha", "sascha", orders.first().getIdentity());
+            Assert.fail("cancel order hätte hier nichts machen sollen.");
+        }
+        catch(ServerSOAPFaultException e) {
+            assertThat(e.getFault().getFaultString(), is("purchase too old."));
+        }
+        catch(Exception e) {
+            Assert.fail(e.getMessage());
+        }
     	Order o = serviceProxy.queryOrder("sascha", "sascha", orders.first().getIdentity());
-    	assertThat(o, is(nullValue()));
+    	assertThat(o, is(not(nullValue())));
+    }
+
+    @Test
+    public void testCancelOrder() {
+        try {
+            Collection<OrderItem> items = getDummyOrderItems();
+            long orderNumber = serviceProxy.createOrder("sascha", "sascha", items);
+            serviceProxy.cancelOrder("sascha", "sascha", orderNumber);
+
+            Order o = serviceProxy.queryOrder("sascha", "sascha", orderNumber);
+            assertThat(o, is(nullValue()));
+        }
+        catch(Exception e) {
+            Assert.fail(e.getMessage());
+        }
+    }
+
+    @Test
+    public void testCreateOrder() {
+        Collection<OrderItem> items = getDummyOrderItems();
+        try {
+            long orderNumber = serviceProxy.createOrder("sascha", "sascha", items);
+            Order o = serviceProxy.queryOrder("sascha", "sascha", orderNumber);
+            assertThat(o, not(nullValue()));
+            assertThat(o.getItems().first().getArticleGrossPrice(), is(999L));
+        }
+        catch(Exception e) {
+            Assert.fail(e.getMessage());
+        }
+    }
+
+    private Collection<OrderItem> getDummyOrderItems() {
+        Collection<OrderItem> items = new ArrayList<OrderItem>();
+        OrderItem item = new OrderItem();
+        item.setArticleGrossPrice(999);
+        item.setArticleIdentity(1);
+        item.setCount(2);
+        items.add(item);
+        return items;
     }
 }
