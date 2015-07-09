@@ -1,12 +1,14 @@
 package de.htw.ds.shop;
 
 import de.sb.java.xml.Namespaces;
+
 import org.junit.*;
 
 import static org.hamcrest.CoreMatchers.*;
 import static org.junit.Assert.*;
 
 import javax.xml.ws.Service;
+
 import java.io.*;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -14,6 +16,7 @@ import java.sql.SQLException;
 import java.sql.Savepoint;
 import java.sql.Statement;
 import java.util.Collection;
+import java.util.SortedSet;
 
 public class ShopServiceTest  {
     private static final int servicePort = 5555;
@@ -125,5 +128,13 @@ public class ShopServiceTest  {
         assertThat(customerNum, not(0));
         Customer foundCustomer = serviceProxy.queryCustomer("sascha", "sascha");
         assertThat(foundCustomer, is(nullValue()));
+    }
+    
+    @Test 
+    public void testCancelOrder() {
+    	SortedSet<Order> orders = serviceProxy.queryOrders("sascha", "sascha");
+    	serviceProxy.cancelOrder("sascha", "sascha", orders.first().getIdentity());
+    	Order o = serviceProxy.queryOrder("sascha", "sascha", orders.first().getIdentity());
+    	assertThat(o, is(nullValue()));
     }
 }
