@@ -99,12 +99,7 @@ public class ShopServer implements ShopService, AutoCloseable {
                 this.jdbcConnector.deleteOrder(alias,hash,orderIdentity);
                 this.jdbcConnector.getConnection().commit();
             } catch(Exception se) {
-                try {
-                    if (this.jdbcConnector.getConnection() != null)
-                        this.jdbcConnector.getConnection().rollback();
-                } catch (SQLException se2) {
-                    se2.printStackTrace();
-                }
+                if (this.jdbcConnector.getConnection() != null) this.jdbcConnector.getConnection().rollback();
                 throw se;
             }
         }
@@ -120,12 +115,7 @@ public class ShopServer implements ShopService, AutoCloseable {
                 this.jdbcConnector.getConnection().commit();
                 return orderNumber;
             } catch(Exception se) {
-                try {
-                    if (this.jdbcConnector.getConnection() != null)
-                        this.jdbcConnector.getConnection().rollback();
-                } catch (SQLException se2) {
-                    se2.printStackTrace();
-                }
+                if (this.jdbcConnector.getConnection() != null) this.jdbcConnector.getConnection().rollback();
                 throw se;
             }
         }
@@ -138,16 +128,10 @@ public class ShopServer implements ShopService, AutoCloseable {
                 article = this.jdbcConnector.queryArticle(articleIdentity);
                 return article;
             } catch(Exception se) {
-                try {
-                    if (this.jdbcConnector.getConnection() != null)
-                        this.jdbcConnector.getConnection().rollback();
-                } catch (SQLException se2) {
-                    se2.printStackTrace();
-                }
+                if (this.jdbcConnector.getConnection() != null) this.jdbcConnector.getConnection().rollback();
                 throw se;
             }
         }
-        return null;
     }
 
     public SortedSet<Article> queryArticles() throws SQLException {
@@ -157,16 +141,10 @@ public class ShopServer implements ShopService, AutoCloseable {
                 articles = this.jdbcConnector.queryArticles();
                 return articles;
             } catch(Exception se) {
-                try {
-                    if (this.jdbcConnector.getConnection() != null)
-                        this.jdbcConnector.getConnection().rollback();
-                } catch (SQLException se2) {
-                    se2.printStackTrace();
-                }
+                if (this.jdbcConnector.getConnection() != null) this.jdbcConnector.getConnection().rollback();
                 throw se;
             }
         }
-        return null;
     }
 
     public Customer queryCustomer(String alias, String password)throws SQLException {
@@ -179,12 +157,7 @@ public class ShopServer implements ShopService, AutoCloseable {
                 this.jdbcConnector.getConnection().commit();
                 return customer;
             } catch(Exception se) {
-                try {
-                    if (this.jdbcConnector.getConnection() != null)
-                        this.jdbcConnector.getConnection().rollback();
-                } catch (SQLException se2) {
-                    se2.printStackTrace();
-                }
+                if (this.jdbcConnector.getConnection() != null) this.jdbcConnector.getConnection().rollback();
                 throw se;
             }
         }
@@ -201,13 +174,8 @@ public class ShopServer implements ShopService, AutoCloseable {
                 this.jdbcConnector.getConnection().commit();
                 return order;
             } catch(Exception se) {
-                try {
-                    if (this.jdbcConnector.getConnection() != null)
-                        this.jdbcConnector.getConnection().rollback();
-                } catch (SQLException se2) {
-                    se2.printStackTrace();
-                }
-               throw se;
+                if (this.jdbcConnector.getConnection() != null) this.jdbcConnector.getConnection().rollback();
+                throw se;
             }
         }
         return null;
@@ -223,12 +191,7 @@ public class ShopServer implements ShopService, AutoCloseable {
                 this.jdbcConnector.getConnection().commit();
                 return orders;
             } catch(Exception se) {
-                try {
-                    if (this.jdbcConnector.getConnection() != null)
-                        this.jdbcConnector.getConnection().rollback();
-                } catch (SQLException se2) {
-                    se2.printStackTrace();
-                }
+                if (this.jdbcConnector.getConnection() != null) this.jdbcConnector.getConnection().rollback();
                 throw se;
             }
         }
@@ -247,12 +210,7 @@ public class ShopServer implements ShopService, AutoCloseable {
                 this.jdbcConnector.getConnection().commit();
                 return customerNo;
             } catch(Exception se) {
-                try {
-                    if (this.jdbcConnector.getConnection() != null)
-                        this.jdbcConnector.getConnection().rollback();
-                } catch (SQLException se2) {
-                    se2.printStackTrace();
-                }
+                if (this.jdbcConnector.getConnection() != null) this.jdbcConnector.getConnection().rollback();
                 throw se;
             }
         }
@@ -269,12 +227,7 @@ public class ShopServer implements ShopService, AutoCloseable {
                 this.jdbcConnector.getConnection().commit();
                 return customerNo;
             } catch(Exception se) {
-                try {
-                    if (this.jdbcConnector.getConnection() != null)
-                        this.jdbcConnector.getConnection().rollback();
-                } catch (SQLException se2) {
-                    se2.printStackTrace();
-                }
+                if (this.jdbcConnector.getConnection() != null) this.jdbcConnector.getConnection().rollback();
                 throw se;
             }
         }
