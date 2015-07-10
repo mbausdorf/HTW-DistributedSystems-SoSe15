@@ -94,8 +94,7 @@ public class ShopServer implements ShopService, AutoCloseable {
     public void cancelOrder(String alias, String password, long orderIdentity) throws NoSuchAlgorithmException, UnsupportedEncodingException, SQLException {
         synchronized(jdbcConnector){
             try{
-                MessageDigest digest = MessageDigest.getInstance("SHA-256");
-                byte[] hash = digest.digest(password.getBytes("UTF-8"));
+                byte[] hash = getPasswordHash(password);
                 this.jdbcConnector.deleteOrder(alias,hash,orderIdentity);
                 this.jdbcConnector.getConnection().commit();
             } catch(Exception se) {
@@ -109,8 +108,7 @@ public class ShopServer implements ShopService, AutoCloseable {
         long orderNumber;
         synchronized(jdbcConnector){
             try{
-                MessageDigest digest = MessageDigest.getInstance("SHA-256");
-                byte[] hash = digest.digest(password.getBytes("UTF-8"));
+                byte[] hash = getPasswordHash(password);
                 orderNumber = this.jdbcConnector.insertOrder(alias,hash,this.taxRate,items);
                 this.jdbcConnector.getConnection().commit();
                 return orderNumber;
@@ -147,12 +145,11 @@ public class ShopServer implements ShopService, AutoCloseable {
         }
     }
 
-    public Customer queryCustomer(String alias, String password)throws SQLException {
+    public Customer queryCustomer(String alias, String password) throws NoSuchAlgorithmException, UnsupportedEncodingException, SQLException {
         Customer customer;
         synchronized(jdbcConnector){
             try{
-                MessageDigest digest = MessageDigest.getInstance("SHA-256");
-                byte[] hash = digest.digest(password.getBytes("UTF-8"));
+                byte[] hash = getPasswordHash(password);
                 customer = this.jdbcConnector.queryCustomer(alias, hash);
                 this.jdbcConnector.getConnection().commit();
                 return customer;
@@ -161,15 +158,13 @@ public class ShopServer implements ShopService, AutoCloseable {
                 throw se;
             }
         }
-        return null;
     }
 
-    public Order queryOrder(String alias, String password, long orderIdentity) throws SQLException{
+    public Order queryOrder(String alias, String password, long orderIdentity) throws NoSuchAlgorithmException, UnsupportedEncodingException, SQLException {
         Order order;
         synchronized(jdbcConnector){
             try{
-                MessageDigest digest = MessageDigest.getInstance("SHA-256");
-                byte[] hash = digest.digest(password.getBytes("UTF-8"));
+                byte[] hash = getPasswordHash(password);
                 order = this.jdbcConnector.queryOrder(alias,hash,orderIdentity);
                 this.jdbcConnector.getConnection().commit();
                 return order;
@@ -178,15 +173,13 @@ public class ShopServer implements ShopService, AutoCloseable {
                 throw se;
             }
         }
-        return null;
     }
 
-    public SortedSet<Order> queryOrders(String alias, String password) throws SQLException{
+    public SortedSet<Order> queryOrders(String alias, String password) throws NoSuchAlgorithmException, UnsupportedEncodingException, SQLException {
         SortedSet<Order> orders;
         synchronized(jdbcConnector){
             try{
-                MessageDigest digest = MessageDigest.getInstance("SHA-256");
-                byte[] hash = digest.digest(password.getBytes("UTF-8"));
+                byte[] hash = getPasswordHash(password);
                 orders = this.jdbcConnector.queryOrders(alias,hash);
                 this.jdbcConnector.getConnection().commit();
                 return orders;
@@ -195,15 +188,13 @@ public class ShopServer implements ShopService, AutoCloseable {
                 throw se;
             }
         }
-        return null;
     }
 
-    public long registerCustomer(Customer customer, String password) throws SQLException{
+    public long registerCustomer(Customer customer, String password) throws NoSuchAlgorithmException, UnsupportedEncodingException, SQLException {
         long customerNo;
         synchronized(jdbcConnector){
             try{
-                MessageDigest digest = MessageDigest.getInstance("SHA-256");
-                byte[] hash = digest.digest(password.getBytes("UTF-8"));
+                byte[] hash = getPasswordHash(password);
                 customerNo = this.jdbcConnector.insertCustomer(customer.getAlias(),hash,
                         customer.getGivenName(),customer.getFamilyName(),customer.getStreet(),customer.getPostcode(),
                         customer.getCity(),customer.getEmail(),customer.getPhone());
@@ -214,15 +205,13 @@ public class ShopServer implements ShopService, AutoCloseable {
                 throw se;
             }
         }
-        return 0;
     }
 
-    public long unregisterCustomer(String alias, String password) throws SQLException{
+    public long unregisterCustomer(String alias, String password) throws NoSuchAlgorithmException, UnsupportedEncodingException, SQLException {
         long customerNo;
         synchronized(jdbcConnector){
             try{
-                MessageDigest digest = MessageDigest.getInstance("SHA-256");
-                byte[] hash = digest.digest(password.getBytes("UTF-8"));
+                byte[] hash = getPasswordHash(password);
                 customerNo = this.jdbcConnector.deleteCustomer(alias,hash);
                 this.jdbcConnector.getConnection().commit();
                 return customerNo;
@@ -231,6 +220,10 @@ public class ShopServer implements ShopService, AutoCloseable {
                 throw se;
             }
         }
-        return 0;
+    }
+
+    private byte[] getPasswordHash(String password) throws NoSuchAlgorithmException, UnsupportedEncodingException {
+        MessageDigest digest = MessageDigest.getInstance("SHA-256");
+        return digest.digest(password.getBytes("UTF-8"));
     }
 }
