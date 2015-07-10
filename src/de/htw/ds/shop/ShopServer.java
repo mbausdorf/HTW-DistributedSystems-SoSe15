@@ -91,174 +91,192 @@ public class ShopServer implements ShopService, AutoCloseable {
         this.endpoint.stop();
     }
 
-    public synchronized void cancelOrder(String alias, String password, long orderIdentity) throws NoSuchAlgorithmException, UnsupportedEncodingException, SQLException {
-        try{
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(password.getBytes("UTF-8"));
-            this.jdbcConnector.deleteOrder(alias,hash,orderIdentity);
-            this.jdbcConnector.getConnection().commit();
-        } catch(Exception se) {
-            try {
-                if (this.jdbcConnector.getConnection() != null)
-                    this.jdbcConnector.getConnection().rollback();
-            } catch (SQLException se2) {
-                se2.printStackTrace();
+    public void cancelOrder(String alias, String password, long orderIdentity) throws NoSuchAlgorithmException, UnsupportedEncodingException, SQLException {
+        synchronized(jdbcConnector){
+            try{
+                MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                byte[] hash = digest.digest(password.getBytes("UTF-8"));
+                this.jdbcConnector.deleteOrder(alias,hash,orderIdentity);
+                this.jdbcConnector.getConnection().commit();
+            } catch(Exception se) {
+                try {
+                    if (this.jdbcConnector.getConnection() != null)
+                        this.jdbcConnector.getConnection().rollback();
+                } catch (SQLException se2) {
+                    se2.printStackTrace();
+                }
+                throw se;
             }
-            throw se;
         }
     }
 
-    public synchronized long createOrder(String alias, String password, Collection<OrderItem> items) throws NoSuchAlgorithmException, UnsupportedEncodingException, SQLException {
+    public long createOrder(String alias, String password, Collection<OrderItem> items) throws NoSuchAlgorithmException, UnsupportedEncodingException, SQLException {
         long orderNumber;
-        try{
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(password.getBytes("UTF-8"));
-            orderNumber = this.jdbcConnector.insertOrder(alias,hash,this.taxRate,items);
-            this.jdbcConnector.getConnection().commit();
-            return orderNumber;
-        } catch(Exception se) {
-            try {
-                if (this.jdbcConnector.getConnection() != null)
-                    this.jdbcConnector.getConnection().rollback();
-            } catch (SQLException se2) {
-                se2.printStackTrace();
+        synchronized(jdbcConnector){
+            try{
+                MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                byte[] hash = digest.digest(password.getBytes("UTF-8"));
+                orderNumber = this.jdbcConnector.insertOrder(alias,hash,this.taxRate,items);
+                this.jdbcConnector.getConnection().commit();
+                return orderNumber;
+            } catch(Exception se) {
+                try {
+                    if (this.jdbcConnector.getConnection() != null)
+                        this.jdbcConnector.getConnection().rollback();
+                } catch (SQLException se2) {
+                    se2.printStackTrace();
+                }
+                throw se;
             }
-            throw se;
         }
     }
 
-    public synchronized Article queryArticle(long articleIdentity) {
+    public Article queryArticle(long articleIdentity) {
         Article article;
-        try{
-            article = this.jdbcConnector.queryArticle(articleIdentity);
-            return article;
-        } catch(Exception se) {
-            try {
-                if (this.jdbcConnector.getConnection() != null)
-                    this.jdbcConnector.getConnection().rollback();
-            } catch (SQLException se2) {
-                se2.printStackTrace();
+        synchronized(jdbcConnector){
+            try{
+                article = this.jdbcConnector.queryArticle(articleIdentity);
+                return article;
+            } catch(Exception se) {
+                try {
+                    if (this.jdbcConnector.getConnection() != null)
+                        this.jdbcConnector.getConnection().rollback();
+                } catch (SQLException se2) {
+                    se2.printStackTrace();
+                }
+                // according to task 3, we should throw an exception here, but we can't
             }
-            // according to task 3, we should throw an exception here, but we can't
         }
         return null;
     }
 
-    public synchronized SortedSet<Article> queryArticles() {
+    public SortedSet<Article> queryArticles() {
         SortedSet<Article> articles;
-        try{
-            articles = this.jdbcConnector.queryArticles();
-            return articles;
-        } catch(Exception se) {
-            try {
-                if (this.jdbcConnector.getConnection() != null)
-                    this.jdbcConnector.getConnection().rollback();
-            } catch (SQLException se2) {
-                se2.printStackTrace();
+        synchronized(jdbcConnector){
+            try{
+                articles = this.jdbcConnector.queryArticles();
+                return articles;
+            } catch(Exception se) {
+                try {
+                    if (this.jdbcConnector.getConnection() != null)
+                        this.jdbcConnector.getConnection().rollback();
+                } catch (SQLException se2) {
+                    se2.printStackTrace();
+                }
+                // according to task 3, we should throw an exception here, but we can't
             }
-            // according to task 3, we should throw an exception here, but we can't
         }
         return null;
     }
 
-    public synchronized Customer queryCustomer(String alias, String password) {
+    public Customer queryCustomer(String alias, String password) {
         Customer customer;
-        try{
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(password.getBytes("UTF-8"));
-            customer = this.jdbcConnector.queryCustomer(alias, hash);
-            this.jdbcConnector.getConnection().commit();
-            return customer;
-        } catch(Exception se) {
-            try {
-                if (this.jdbcConnector.getConnection() != null)
-                    this.jdbcConnector.getConnection().rollback();
-            } catch (SQLException se2) {
-                se2.printStackTrace();
+        synchronized(jdbcConnector){
+            try{
+                MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                byte[] hash = digest.digest(password.getBytes("UTF-8"));
+                customer = this.jdbcConnector.queryCustomer(alias, hash);
+                this.jdbcConnector.getConnection().commit();
+                return customer;
+            } catch(Exception se) {
+                try {
+                    if (this.jdbcConnector.getConnection() != null)
+                        this.jdbcConnector.getConnection().rollback();
+                } catch (SQLException se2) {
+                    se2.printStackTrace();
+                }
+                // according to task 3, we should throw an exception here, but we can't
             }
-            // according to task 3, we should throw an exception here, but we can't
         }
         return null;
     }
 
-    public synchronized Order queryOrder(String alias, String password, long orderIdentity) {
+    public Order queryOrder(String alias, String password, long orderIdentity) {
         Order order;
-        try{
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(password.getBytes("UTF-8"));
-            order = this.jdbcConnector.queryOrder(alias,hash,orderIdentity);
-            this.jdbcConnector.getConnection().commit();
-            return order;
-        } catch(Exception se) {
-            try {
-                if (this.jdbcConnector.getConnection() != null)
-                    this.jdbcConnector.getConnection().rollback();
-            } catch (SQLException se2) {
-                se2.printStackTrace();
+        synchronized(jdbcConnector){
+            try{
+                MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                byte[] hash = digest.digest(password.getBytes("UTF-8"));
+                order = this.jdbcConnector.queryOrder(alias,hash,orderIdentity);
+                this.jdbcConnector.getConnection().commit();
+                return order;
+            } catch(Exception se) {
+                try {
+                    if (this.jdbcConnector.getConnection() != null)
+                        this.jdbcConnector.getConnection().rollback();
+                } catch (SQLException se2) {
+                    se2.printStackTrace();
+                }
+                // according to task 3, we should throw an exception here, but we can't
             }
-            // according to task 3, we should throw an exception here, but we can't
         }
         return null;
     }
 
-    public synchronized SortedSet<Order> queryOrders(String alias, String password) {
+    public SortedSet<Order> queryOrders(String alias, String password) {
         SortedSet<Order> orders;
-        try{
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(password.getBytes("UTF-8"));
-            orders = this.jdbcConnector.queryOrders(alias,hash);
-            this.jdbcConnector.getConnection().commit();
-            return orders;
-        } catch(Exception se) {
-            try {
-                if (this.jdbcConnector.getConnection() != null)
-                    this.jdbcConnector.getConnection().rollback();
-            } catch (SQLException se2) {
-                se2.printStackTrace();
+        synchronized(jdbcConnector){
+            try{
+                MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                byte[] hash = digest.digest(password.getBytes("UTF-8"));
+                orders = this.jdbcConnector.queryOrders(alias,hash);
+                this.jdbcConnector.getConnection().commit();
+                return orders;
+            } catch(Exception se) {
+                try {
+                    if (this.jdbcConnector.getConnection() != null)
+                        this.jdbcConnector.getConnection().rollback();
+                } catch (SQLException se2) {
+                    se2.printStackTrace();
+                }
+                // according to task 3, we should throw an exception here, but we can't
             }
-            // according to task 3, we should throw an exception here, but we can't
         }
         return null;
     }
 
-    public synchronized long registerCustomer(Customer customer, String password) {
+    public long registerCustomer(Customer customer, String password) {
         long customerNo;
-        try{
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(password.getBytes("UTF-8"));
-            customerNo = this.jdbcConnector.insertCustomer(customer.getAlias(),hash,
-                    customer.getGivenName(),customer.getFamilyName(),customer.getStreet(),customer.getPostcode(),
-                    customer.getCity(),customer.getEmail(),customer.getPhone());
-            this.jdbcConnector.getConnection().commit();
-            return customerNo;
-        } catch(Exception se) {
-            try {
-                if (this.jdbcConnector.getConnection() != null)
-                    this.jdbcConnector.getConnection().rollback();
-            } catch (SQLException se2) {
-                se2.printStackTrace();
+        synchronized(jdbcConnector){
+            try{
+                MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                byte[] hash = digest.digest(password.getBytes("UTF-8"));
+                customerNo = this.jdbcConnector.insertCustomer(customer.getAlias(),hash,
+                        customer.getGivenName(),customer.getFamilyName(),customer.getStreet(),customer.getPostcode(),
+                        customer.getCity(),customer.getEmail(),customer.getPhone());
+                this.jdbcConnector.getConnection().commit();
+                return customerNo;
+            } catch(Exception se) {
+                try {
+                    if (this.jdbcConnector.getConnection() != null)
+                        this.jdbcConnector.getConnection().rollback();
+                } catch (SQLException se2) {
+                    se2.printStackTrace();
+                }
+                // according to task 3, we should throw an exception here, but we can't
             }
-            // according to task 3, we should throw an exception here, but we can't
         }
         return 0;
     }
 
-    public synchronized long unregisterCustomer(String alias, String password) {
+    public long unregisterCustomer(String alias, String password) {
         long customerNo;
-        try{
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
-            byte[] hash = digest.digest(password.getBytes("UTF-8"));
-            customerNo = this.jdbcConnector.deleteCustomer(alias,hash);
-            this.jdbcConnector.getConnection().commit();
-            return customerNo;
-        } catch(Exception se) {
-            try {
-                if (this.jdbcConnector.getConnection() != null)
-                    this.jdbcConnector.getConnection().rollback();
-            } catch (SQLException se2) {
-                se2.printStackTrace();
+        synchronized(jdbcConnector){
+            try{
+                MessageDigest digest = MessageDigest.getInstance("SHA-256");
+                byte[] hash = digest.digest(password.getBytes("UTF-8"));
+                customerNo = this.jdbcConnector.deleteCustomer(alias,hash);
+                this.jdbcConnector.getConnection().commit();
+                return customerNo;
+            } catch(Exception se) {
+                try {
+                    if (this.jdbcConnector.getConnection() != null)
+                        this.jdbcConnector.getConnection().rollback();
+                } catch (SQLException se2) {
+                    se2.printStackTrace();
+                }
+                // according to task 3, we should throw an exception here, but we can't
             }
-            // according to task 3, we should throw an exception here, but we can't
         }
         return 0;
     }
