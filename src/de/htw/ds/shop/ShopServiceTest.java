@@ -1,5 +1,6 @@
 package de.htw.ds.shop;
 
+import com.sun.corba.se.spi.activation.Server;
 import com.sun.xml.internal.ws.fault.ServerSOAPFaultException;
 import de.sb.java.xml.Namespaces;
 
@@ -125,7 +126,7 @@ public class ShopServiceTest  {
 
             assertThat(foundCustomer.getIdentity(), is(customerNum));
             assertThat(foundCustomer.getAlias(), is(testCustomer.getAlias()));
-        } catch (SQLException e) {
+        } catch (Exception e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -138,7 +139,7 @@ public class ShopServiceTest  {
             assertThat(sascha.getAlias(), is("sascha"));
             assertThat(sascha.getFamilyName(), is("Baumeister"));
             assertThat(sascha.getPostcode(), is("10999"));
-        } catch (SQLException e) {
+        } catch (Exception e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -148,7 +149,9 @@ public class ShopServiceTest  {
         try {
             serviceProxy.unregisterCustomer("sascha", "sascha");
             Assert.fail("Kunde mit Bestellungen sollte nicht zu entfernen sein");
-        } catch (SQLException e) {
+        } catch (ServerSOAPFaultException e) {
+            assertThat(e.getFault().getFaultString(), is("customer has orders."));
+        } catch (Exception e) {
             Assert.fail(e.getMessage());
         }
 
@@ -156,7 +159,7 @@ public class ShopServiceTest  {
         try {
             foundCustomer = serviceProxy.queryCustomer("sascha", "sascha");
             assertThat(foundCustomer, is(not(nullValue())));
-        } catch (SQLException e) {
+        } catch (Exception e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -178,7 +181,7 @@ public class ShopServiceTest  {
             Order o = serviceProxy.queryOrder("sascha", "sascha", orders.first().getIdentity());
             assertThat(o, is(not(nullValue())));
         }
-        catch (SQLException e) {
+        catch (Exception e) {
             Assert.fail(e.getMessage());
         }
     }
@@ -192,6 +195,9 @@ public class ShopServiceTest  {
 
             Order o = serviceProxy.queryOrder("sascha", "sascha", orderNumber);
             assertThat(o, is(nullValue()));
+        }
+        catch (ServerSOAPFaultException e) {
+            assertThat(e.getFault().getFaultString(), is("purchase doesn't exist."));
         }
         catch(Exception e) {
             Assert.fail(e.getMessage());

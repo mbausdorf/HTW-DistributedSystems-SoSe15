@@ -29,7 +29,7 @@ public interface ShopService {
 	void cancelOrder (
 			@WebParam(name = "alias") String alias,
 			@WebParam(name = "password") String password,
-			@WebParam(name = "orderIdentity") long orderIdentity) throws NoSuchAlgorithmException, UnsupportedEncodingException, SQLException, IllegalStateException;
+			@WebParam(name = "orderIdentity") long orderIdentity) throws SQLException, IllegalStateException;
 
 
 	/**
@@ -44,7 +44,7 @@ public interface ShopService {
 	long createOrder (
 			@WebParam(name = "alias") String alias,
 			@WebParam(name = "password") String password,
-			@WebParam(name = "items") Collection<OrderItem> items)  throws NoSuchAlgorithmException, UnsupportedEncodingException, SQLException;
+			@WebParam(name = "items") Collection<OrderItem> items)  throws SQLException;
 
 
 	/**
@@ -68,7 +68,7 @@ public interface ShopService {
 	 */
 	Customer queryCustomer (
 			@WebParam(name = "alias") String alias,
-			@WebParam(name = "password") String password) throws SQLException, NoSuchAlgorithmException, UnsupportedEncodingException;
+			@WebParam(name = "password") String password) throws SQLException;
 
 
 	/**
@@ -81,7 +81,7 @@ public interface ShopService {
 	Order queryOrder (
 			@WebParam(name = "alias") String alias,
 			@WebParam(name = "password") String password,
-			@WebParam(name = "orderIdentity") long orderIdentity) throws SQLException, NoSuchAlgorithmException, UnsupportedEncodingException;
+			@WebParam(name = "orderIdentity") long orderIdentity) throws SQLException;
 
 
 	/**
@@ -94,7 +94,7 @@ public interface ShopService {
 	 */
 	SortedSet<Order> queryOrders (
 			@WebParam(name = "alias") String alias,
-			@WebParam(name = "password") String password) throws SQLException, NoSuchAlgorithmException, UnsupportedEncodingException;
+			@WebParam(name = "password") String password) throws SQLException;
 
 
 	/**
@@ -106,7 +106,7 @@ public interface ShopService {
 	 */
 	long registerCustomer (
 			@WebParam(name = "customer") Customer customer,
-			@WebParam(name = "password") String password) throws SQLException, NoSuchAlgorithmException, UnsupportedEncodingException;
+			@WebParam(name = "password") String password) throws SQLException;
 
 
 	/**
@@ -117,5 +117,6 @@ public interface ShopService {
 	 */
 	long unregisterCustomer (
 			@WebParam(name = "alias") String alias,
-			@WebParam(name = "password") String password) throws SQLException, NoSuchAlgorithmException, UnsupportedEncodingException;
+			@WebParam(name = "password") String password
+	) throws SQLException;
 }

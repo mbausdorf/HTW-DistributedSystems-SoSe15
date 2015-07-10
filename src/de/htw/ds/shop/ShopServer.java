@@ -55,23 +55,19 @@ public class ShopServer implements ShopService, AutoCloseable {
 
     }
 
-    static public void main (final String[] args) throws WebServiceException, IOException {
+    static public void main (final String[] args) throws WebServiceException, IOException, Exception {
         final long timestamp = System.currentTimeMillis();
         final int servicePort = Integer.parseInt(args[0]);
         final String serviceName = args[1];
         double taxRate = Double.parseDouble(args[2]);
 
-        try {
-            try (ShopServer server = new ShopServer(servicePort, serviceName, taxRate)) {
-                System.out.format("Dynamic (bottom-up) JAX-WS shop server running, enter \"quit\" to stop.\n");
-                System.out.format("Service URI is \"%s\".\n", server.getServiceURI().toASCIIString());
-                System.out.format("Startup time is %sms.\n", System.currentTimeMillis() - timestamp);
+        try (ShopServer server = new ShopServer(servicePort, serviceName, taxRate)) {
+            System.out.format("Dynamic (bottom-up) JAX-WS shop server running, enter \"quit\" to stop.\n");
+            System.out.format("Service URI is \"%s\".\n", server.getServiceURI().toASCIIString());
+            System.out.format("Startup time is %sms.\n", System.currentTimeMillis() - timestamp);
 
-                final BufferedReader charSource = new BufferedReader(new InputStreamReader(System.in));
-                while (!"quit".equals(charSource.readLine()));
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
+            final BufferedReader charSource = new BufferedReader(new InputStreamReader(System.in));
+            while (!"quit".equals(charSource.readLine()));
         }
     }
 
@@ -91,20 +87,25 @@ public class ShopServer implements ShopService, AutoCloseable {
         this.endpoint.stop();
     }
 
-    public void cancelOrder(String alias, String password, long orderIdentity) throws NoSuchAlgorithmException, UnsupportedEncodingException, SQLException {
+    public void cancelOrder(String alias, String password, long orderIdentity) throws SQLException {
         synchronized(jdbcConnector){
             try{
                 byte[] hash = getPasswordHash(password);
                 this.jdbcConnector.deleteOrder(alias,hash,orderIdentity);
                 this.jdbcConnector.getConnection().commit();
             } catch(Exception se) {
-                if (this.jdbcConnector.getConnection() != null) this.jdbcConnector.getConnection().rollback();
+                try {
+                    this.jdbcConnector.getConnection().rollback();
+                }
+                catch (Exception e) {
+                    se.addSuppressed(e);
+                }
                 throw se;
             }
         }
     }
 
-    public long createOrder(String alias, String password, Collection<OrderItem> items) throws NoSuchAlgorithmException, UnsupportedEncodingException, SQLException {
+    public long createOrder(String alias, String password, Collection<OrderItem> items) throws SQLException {
         long orderNumber;
         synchronized(jdbcConnector){
             try{
@@ -113,7 +114,12 @@ public class ShopServer implements ShopService, AutoCloseable {
                 this.jdbcConnector.getConnection().commit();
                 return orderNumber;
             } catch(Exception se) {
-                if (this.jdbcConnector.getConnection() != null) this.jdbcConnector.getConnection().rollback();
+                try {
+                    this.jdbcConnector.getConnection().rollback();
+                }
+                catch (Exception e) {
+                    se.addSuppressed(e);
+                }
                 throw se;
             }
         }
@@ -126,7 +132,12 @@ public class ShopServer implements ShopService, AutoCloseable {
                 article = this.jdbcConnector.queryArticle(articleIdentity);
                 return article;
             } catch(Exception se) {
-                if (this.jdbcConnector.getConnection() != null) this.jdbcConnector.getConnection().rollback();
+                try {
+                    this.jdbcConnector.getConnection().rollback();
+                }
+                catch (Exception e) {
+                    se.addSuppressed(e);
+                }
                 throw se;
             }
         }
@@ -139,13 +150,18 @@ public class ShopServer implements ShopService, AutoCloseable {
                 articles = this.jdbcConnector.queryArticles();
                 return articles;
             } catch(Exception se) {
-                if (this.jdbcConnector.getConnection() != null) this.jdbcConnector.getConnection().rollback();
+                try {
+                    this.jdbcConnector.getConnection().rollback();
+                }
+                catch (Exception e) {
+                    se.addSuppressed(e);
+                }
                 throw se;
             }
         }
     }
 
-    public Customer queryCustomer(String alias, String password) throws NoSuchAlgorithmException, UnsupportedEncodingException, SQLException {
+    public Customer queryCustomer(String alias, String password) throws SQLException {
         Customer customer;
         synchronized(jdbcConnector){
             try{
@@ -154,13 +170,18 @@ public class ShopServer implements ShopService, AutoCloseable {
                 this.jdbcConnector.getConnection().commit();
                 return customer;
             } catch(Exception se) {
-                if (this.jdbcConnector.getConnection() != null) this.jdbcConnector.getConnection().rollback();
+                try {
+                    this.jdbcConnector.getConnection().rollback();
+                }
+                catch (Exception e) {
+                    se.addSuppressed(e);
+                }
                 throw se;
             }
         }
     }
 
-    public Order queryOrder(String alias, String password, long orderIdentity) throws NoSuchAlgorithmException, UnsupportedEncodingException, SQLException {
+    public Order queryOrder(String alias, String password, long orderIdentity) throws SQLException {
         Order order;
         synchronized(jdbcConnector){
             try{
@@ -169,13 +190,18 @@ public class ShopServer implements ShopService, AutoCloseable {
                 this.jdbcConnector.getConnection().commit();
                 return order;
             } catch(Exception se) {
-                if (this.jdbcConnector.getConnection() != null) this.jdbcConnector.getConnection().rollback();
+                try {
+                    this.jdbcConnector.getConnection().rollback();
+                }
+                catch (Exception e) {
+                    se.addSuppressed(e);
+                }
                 throw se;
             }
         }
     }
 
-    public SortedSet<Order> queryOrders(String alias, String password) throws NoSuchAlgorithmException, UnsupportedEncodingException, SQLException {
+    public SortedSet<Order> queryOrders(String alias, String password) throws SQLException {
         SortedSet<Order> orders;
         synchronized(jdbcConnector){
             try{
@@ -184,13 +210,18 @@ public class ShopServer implements ShopService, AutoCloseable {
                 this.jdbcConnector.getConnection().commit();
                 return orders;
             } catch(Exception se) {
-                if (this.jdbcConnector.getConnection() != null) this.jdbcConnector.getConnection().rollback();
+                try {
+                    this.jdbcConnector.getConnection().rollback();
+                }
+                catch (Exception e) {
+                    se.addSuppressed(e);
+                }
                 throw se;
             }
         }
     }
 
-    public long registerCustomer(Customer customer, String password) throws NoSuchAlgorithmException, UnsupportedEncodingException, SQLException {
+    public long registerCustomer(Customer customer, String password) throws SQLException {
         long customerNo;
         synchronized(jdbcConnector){
             try{
@@ -201,13 +232,18 @@ public class ShopServer implements ShopService, AutoCloseable {
                 this.jdbcConnector.getConnection().commit();
                 return customerNo;
             } catch(Exception se) {
-                if (this.jdbcConnector.getConnection() != null) this.jdbcConnector.getConnection().rollback();
+                try {
+                    this.jdbcConnector.getConnection().rollback();
+                }
+                catch (Exception e) {
+                    se.addSuppressed(e);
+                }
                 throw se;
             }
         }
     }
 
-    public long unregisterCustomer(String alias, String password) throws NoSuchAlgorithmException, UnsupportedEncodingException, SQLException {
+    public long unregisterCustomer(String alias, String password) throws SQLException {
         long customerNo;
         synchronized(jdbcConnector){
             try{
@@ -216,14 +252,24 @@ public class ShopServer implements ShopService, AutoCloseable {
                 this.jdbcConnector.getConnection().commit();
                 return customerNo;
             } catch(Exception se) {
-                if (this.jdbcConnector.getConnection() != null) this.jdbcConnector.getConnection().rollback();
+                try {
+                    this.jdbcConnector.getConnection().rollback();
+                }
+                catch (Exception e) {
+                    se.addSuppressed(e);
+                }
                 throw se;
             }
         }
     }
 
-    private byte[] getPasswordHash(String password) throws NoSuchAlgorithmException, UnsupportedEncodingException {
-        MessageDigest digest = MessageDigest.getInstance("SHA-256");
-        return digest.digest(password.getBytes("UTF-8"));
+    private byte[] getPasswordHash(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            return digest.digest(password.getBytes("UTF-8"));
+        }
+        catch (NoSuchAlgorithmException | UnsupportedEncodingException e) {
+            throw new AssertionError();
+        }
     }
 }
