@@ -51,13 +51,13 @@ public interface ShopService {
 	 * Returns the article data for the given identity.
 	 * @param articleIdentity the article identity
 	 */
-	Article queryArticle (@WebParam(name = "articleIdentity") long articleIdentity);
+	Article queryArticle (@WebParam(name = "articleIdentity") long articleIdentity) throws SQLException;
 
 
 	/**
 	 * Returns all article data.
 	 */
-	SortedSet<Article> queryArticles ();
+	SortedSet<Article> queryArticles ()throws SQLException;
 
 
 	/**
@@ -68,7 +68,7 @@ public interface ShopService {
 	 */
 	Customer queryCustomer (
 			@WebParam(name = "alias") String alias,
-			@WebParam(name = "password") String password);
+			@WebParam(name = "password") String password) throws SQLException;
 
 
 	/**
@@ -81,7 +81,7 @@ public interface ShopService {
 	Order queryOrder (
 			@WebParam(name = "alias") String alias,
 			@WebParam(name = "password") String password,
-			@WebParam(name = "orderIdentity") long orderIdentity);
+			@WebParam(name = "orderIdentity") long orderIdentity) throws SQLException;
 
 
 	/**
@@ -94,7 +94,7 @@ public interface ShopService {
 	 */
 	SortedSet<Order> queryOrders (
 			@WebParam(name = "alias") String alias,
-			@WebParam(name = "password") String password);
+			@WebParam(name = "password") String password) throws SQLException;
 
 
 	/**
@@ -106,7 +106,7 @@ public interface ShopService {
 	 */
 	long registerCustomer (
 			@WebParam(name = "customer") Customer customer,
-			@WebParam(name = "password") String password);
+			@WebParam(name = "password") String password) throws SQLException;
 
 
 	/**
@@ -117,5 +117,5 @@ public interface ShopService {
 	 */
 	long unregisterCustomer (
 			@WebParam(name = "alias") String alias,
-			@WebParam(name = "password") String password);
+			@WebParam(name = "password") String password) throws SQLException;
 }

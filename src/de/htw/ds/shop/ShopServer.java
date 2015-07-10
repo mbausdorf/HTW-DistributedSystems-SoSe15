@@ -131,7 +131,7 @@ public class ShopServer implements ShopService, AutoCloseable {
         }
     }
 
-    public Article queryArticle(long articleIdentity) {
+    public Article queryArticle(long articleIdentity) throws SQLException{
         Article article;
         synchronized(jdbcConnector){
             try{
@@ -144,13 +144,13 @@ public class ShopServer implements ShopService, AutoCloseable {
                 } catch (SQLException se2) {
                     se2.printStackTrace();
                 }
-                // according to task 3, we should throw an exception here, but we can't
+                throw se;
             }
         }
         return null;
     }
 
-    public SortedSet<Article> queryArticles() {
+    public SortedSet<Article> queryArticles() throws SQLException {
         SortedSet<Article> articles;
         synchronized(jdbcConnector){
             try{
@@ -163,13 +163,13 @@ public class ShopServer implements ShopService, AutoCloseable {
                 } catch (SQLException se2) {
                     se2.printStackTrace();
                 }
-                // according to task 3, we should throw an exception here, but we can't
+                throw se;
             }
         }
         return null;
     }
 
-    public Customer queryCustomer(String alias, String password) {
+    public Customer queryCustomer(String alias, String password)throws SQLException {
         Customer customer;
         synchronized(jdbcConnector){
             try{
@@ -185,13 +185,13 @@ public class ShopServer implements ShopService, AutoCloseable {
                 } catch (SQLException se2) {
                     se2.printStackTrace();
                 }
-                // according to task 3, we should throw an exception here, but we can't
+                throw se;
             }
         }
         return null;
     }
 
-    public Order queryOrder(String alias, String password, long orderIdentity) {
+    public Order queryOrder(String alias, String password, long orderIdentity) throws SQLException{
         Order order;
         synchronized(jdbcConnector){
             try{
@@ -207,13 +207,13 @@ public class ShopServer implements ShopService, AutoCloseable {
                 } catch (SQLException se2) {
                     se2.printStackTrace();
                 }
-                // according to task 3, we should throw an exception here, but we can't
+               throw se;
             }
         }
         return null;
     }
 
-    public SortedSet<Order> queryOrders(String alias, String password) {
+    public SortedSet<Order> queryOrders(String alias, String password) throws SQLException{
         SortedSet<Order> orders;
         synchronized(jdbcConnector){
             try{
@@ -229,13 +229,13 @@ public class ShopServer implements ShopService, AutoCloseable {
                 } catch (SQLException se2) {
                     se2.printStackTrace();
                 }
-                // according to task 3, we should throw an exception here, but we can't
+                throw se;
             }
         }
         return null;
     }
 
-    public long registerCustomer(Customer customer, String password) {
+    public long registerCustomer(Customer customer, String password) throws SQLException{
         long customerNo;
         synchronized(jdbcConnector){
             try{
@@ -253,13 +253,13 @@ public class ShopServer implements ShopService, AutoCloseable {
                 } catch (SQLException se2) {
                     se2.printStackTrace();
                 }
-                // according to task 3, we should throw an exception here, but we can't
+                throw se;
             }
         }
         return 0;
     }
 
-    public long unregisterCustomer(String alias, String password) {
+    public long unregisterCustomer(String alias, String password) throws SQLException{
         long customerNo;
         synchronized(jdbcConnector){
             try{
@@ -275,7 +275,7 @@ public class ShopServer implements ShopService, AutoCloseable {
                 } catch (SQLException se2) {
                     se2.printStackTrace();
                 }
-                // according to task 3, we should throw an exception here, but we can't
+                throw se;
             }
         }
         return 0;
