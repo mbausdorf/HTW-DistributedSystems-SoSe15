@@ -86,14 +86,24 @@ public class ShopServiceTest  {
 
     @Test
     public void testQueryArticle() {
-        final Article article = serviceProxy.queryArticle(1);
-        assertEquals("Beschreibung", "CARIOCA Fahrrad-Schlauch, 28x1.5 Zoll", article.getDescription());
+        final Article article;
+        try {
+            article = serviceProxy.queryArticle(1);
+            assertEquals("Beschreibung", "CARIOCA Fahrrad-Schlauch, 28x1.5 Zoll", article.getDescription());
+        } catch (SQLException e) {
+            Assert.fail(e.getMessage());
+        }
     }
 
     @Test
     public void testQueryArticles() {
-        final Collection<Article> articles = serviceProxy.queryArticles();
-        assertEquals("anzahl artikel", 3, articles.size());
+        final Collection<Article> articles;
+        try {
+            articles = serviceProxy.queryArticles();
+            assertEquals("anzahl artikel", 3, articles.size());
+        } catch (SQLException e) {
+            Assert.fail(e.getMessage());
+        }
     }
 
     @Test
@@ -107,46 +117,70 @@ public class ShopServiceTest  {
         testCustomer.setPhone("4");
         testCustomer.setPostcode("5");
         testCustomer.setStreet("6");
-        final long customerNum = serviceProxy.registerCustomer(testCustomer, "test");
-        assertThat(customerNum, is(not(0l)));
+        try {
+            final long customerNum = serviceProxy.registerCustomer(testCustomer, "test");
+            assertThat(customerNum, is(not(0l)));
 
-        Customer foundCustomer = serviceProxy.queryCustomer("test", "test");
+            Customer foundCustomer = serviceProxy.queryCustomer("test", "test");
 
-        assertThat(foundCustomer.getIdentity(), is(customerNum));
-        assertThat(foundCustomer.getAlias(), is(testCustomer.getAlias()));
+            assertThat(foundCustomer.getIdentity(), is(customerNum));
+            assertThat(foundCustomer.getAlias(), is(testCustomer.getAlias()));
+        } catch (SQLException e) {
+            Assert.fail(e.getMessage());
+        }
     }
 
     @Test
     public void testQueryCustomer() {
-        Customer sascha = serviceProxy.queryCustomer("sascha", "sascha");
-        assertThat(sascha.getAlias(), is("sascha"));
-        assertThat(sascha.getFamilyName(), is("Baumeister"));
-        assertThat(sascha.getPostcode(), is("10999"));
+        Customer sascha = null;
+        try {
+            sascha = serviceProxy.queryCustomer("sascha", "sascha");
+            assertThat(sascha.getAlias(), is("sascha"));
+            assertThat(sascha.getFamilyName(), is("Baumeister"));
+            assertThat(sascha.getPostcode(), is("10999"));
+        } catch (SQLException e) {
+            Assert.fail(e.getMessage());
+        }
     }
     
     @Test
     public void testUnregisterCustomer() {
-        final long customerNum = serviceProxy.unregisterCustomer("sascha", "sascha");
-        assertThat(customerNum, is(0l));
-        Customer foundCustomer = serviceProxy.queryCustomer("sascha", "sascha");
-        assertThat(foundCustomer, is(not(nullValue())));
+        try {
+            serviceProxy.unregisterCustomer("sascha", "sascha");
+            Assert.fail("Kunde mit Bestellungen sollte nicht zu entfernen sein");
+        } catch (SQLException e) {
+            Assert.fail(e.getMessage());
+        }
+
+        Customer foundCustomer = null;
+        try {
+            foundCustomer = serviceProxy.queryCustomer("sascha", "sascha");
+            assertThat(foundCustomer, is(not(nullValue())));
+        } catch (SQLException e) {
+            Assert.fail(e.getMessage());
+        }
     }
     
     @Test 
     public void testCancelOrderTooOld() {
-    	SortedSet<Order> orders = serviceProxy.queryOrders("sascha", "sascha");
         try {
-            serviceProxy.cancelOrder("sascha", "sascha", orders.first().getIdentity());
-            Assert.fail("cancel order hätte hier nichts machen sollen.");
+            SortedSet<Order> orders = serviceProxy.queryOrders("sascha", "sascha");
+            try {
+                serviceProxy.cancelOrder("sascha", "sascha", orders.first().getIdentity());
+                Assert.fail("Alte Bestellungen können nicht storniert werden");
+            }
+            catch(ServerSOAPFaultException e) {
+                assertThat(e.getFault().getFaultString(), is("purchase too old."));
+            }
+            catch(Exception e) {
+                Assert.fail(e.getMessage());
+            }
+            Order o = serviceProxy.queryOrder("sascha", "sascha", orders.first().getIdentity());
+            assertThat(o, is(not(nullValue())));
         }
-        catch(ServerSOAPFaultException e) {
-            assertThat(e.getFault().getFaultString(), is("purchase too old."));
-        }
-        catch(Exception e) {
+        catch (SQLException e) {
             Assert.fail(e.getMessage());
         }
-    	Order o = serviceProxy.queryOrder("sascha", "sascha", orders.first().getIdentity());
-    	assertThat(o, is(not(nullValue())));
     }
 
     @Test
